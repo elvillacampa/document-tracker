@@ -13,7 +13,9 @@ class DocumentController extends Controller
     {
         $documents = Document::with(['locations' => function ($query) {
             $query->orderBy('timestamp', 'asc'); // Sort locations by timestamp (earliest first)
-        }])->get();
+        }])
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         return view('documents.index', compact('documents'));
     }
