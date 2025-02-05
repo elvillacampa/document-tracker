@@ -82,4 +82,28 @@ class AuthController extends Controller
         // Redirect to the intended page or default to home.
         return redirect()->intended('/');
     }
+
+    public function showChangePasswordForm()
+    {
+        return view('auth.change-password');
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'current_password' => ['required', 'current_password'], // checks that the current_password matches the authenticated user's password
+            'password' => ['required', 'min:8', 'confirmed'], // new password, must be confirmed
+        ]);
+
+        // Update the user's password
+        $user = auth()->user();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->back()->with('success', 'Your password has been changed successfully!');
+    }
 }

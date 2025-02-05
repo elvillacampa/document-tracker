@@ -26,6 +26,8 @@
                 <span class="navbar-text me-3">
                     Hello, {{ Auth::user()->name }}
                 </span>
+                <a href="{{ route('password.change') }}" class="btn btn-link me-3">Change Password</a>
+                <a href="{{ route('profile.edit') }}" class="btn btn-link me-3">Edit Profile</a>
             @endauth
             <!-- Logout form -->
             <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -35,6 +37,7 @@
         </div>
     </div>
 </nav>
+
 
     <div class="container my-5">
         <h1 class="text-center">SMB</h1>

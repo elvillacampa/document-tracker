@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\ProfileController;
 
 // Authentication Routes
 Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -25,4 +26,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
     Route::delete('/locations/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');
     Route::put('/locations/{location}', [LocationController::class, 'update'])->name('locations.update');
+
+
+    Route::middleware('auth')->group(function () {
+        // Show the change password form
+        Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('password.change');
+
+        // Process the password update
+        Route::post('/change-password', [AuthController::class, 'updatePassword'])->name('password.update');
+    });
+
+  // Profile editing routes
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
 });
