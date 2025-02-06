@@ -41,6 +41,10 @@
         <p><strong>Category:</strong> {{ $document->category }}</p>
         <p><strong>Br/Off/Unit:</strong> {{ $document->drafter }}</p>
 
+        <!-- Added Creator and Last Updated By -->
+        <p><strong>Created By:</strong> {{ $document->creator->name ?? 'Unknown' }} on {{ $document->created_at->format('Y-m-d H:i') }}</p>
+        <p><strong>Last Updated By:</strong> {{ $document->updater->name ?? 'Unknown' }} on {{ $document->updated_at->format('Y-m-d H:i') }}</p>
+
         <h4>Routing History:</h4>
 
         @php
@@ -50,12 +54,20 @@
 
         @if ($sortedLocations->isNotEmpty())
             <table class="table table-bordered">
+                <colgroup>
+                    <col style="width: 5%;">   <!-- # -->
+                    <col style="width: 20%;">  <!-- Br/Off/Unit -->
+                    <col style="width: 20%;">  <!-- Received By -->
+                    <col style="width: 10%;">  <!-- Date and Time -->
+                    <col style="width: 10%;">  <!-- Logs (Smaller Column) -->
+                </colgroup>
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Br/Off/Unit</th>
                         <th>Received By</th>
                         <th>Date and Time</th>
+                        <th>Logs</th> <!-- New Column for Creator and Updater Logs -->
                     </tr>
                 </thead>
                 <tbody>
@@ -65,6 +77,12 @@
                             <td>{{ $location->location }}</td>
                             <td>{{ $location->receiver }}</td>
                             <td>{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
+                            <td>
+                                <strong>Created By: </strong> {{ $location->creator->name ?? 'Unknown' }}<br>
+                                <small>on {{ $location->created_at->format('Y-m-d H:i') }}</small><br>
+                                <strong>Last Updated By: </strong> {{ $location->updater->name ?? 'Unknown' }}<br>
+                                <small>on {{ $location->updated_at->format('Y-m-d H:i') }}</small>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

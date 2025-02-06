@@ -38,19 +38,27 @@ class DocumentController extends Controller
             $filePath = $request->file('file')->store('documents', 'public');
         }
     
-        $document = Document::create([
-            'name' => $validated['name'],
-            'drafter' => $validated['drafter'],
-            'category' => $validated['category'],
-            'purpose' => $validated['purpose'],
-            'file_path' => $filePath,
-        ]);
+        // $document = Document::create([
+        //     'name' => $validated['name'],
+        //     'drafter' => $validated['drafter'],
+        //     'category' => $validated['category'],
+        //     'purpose' => $validated['purpose'],
+        //     'file_path' => $filePath,
+        // ]);
     
+        $document = Document::create([
+            ...$validated,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
         $location = $document->locations()->create([
             'location' => $validated['location'],
             'receiver' => $validated['receiver'],
             'timestamp' => $validated['timestamp'],
         ]);
+
+
+
         return response()->json([
             'success' => true,
             'document' => $document->load('locations')  // Ensure locations are included
@@ -69,7 +77,10 @@ public function update(Request $request, $id)
 
     $document = Document::findOrFail($id);
     $document->update($data);
-
+    $document->update([
+        ...$data,
+        'updated_by' => auth()->id(),
+    ]);
     return response()->json(['success' => true, 'document' => $document]);
 }
 

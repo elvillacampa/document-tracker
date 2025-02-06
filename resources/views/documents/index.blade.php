@@ -1,6 +1,14 @@
 @extends('layouts.app')
 @section('content')
 <style>
+/* Responsive Table */
+.table-responsive {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+
+}
+
 .table-bordered {
   border-collapse: collapse;
   border: none;
@@ -11,26 +19,54 @@
   border: none;
   border-bottom: 1px solid black;
 }
+
+#dataTable {
+  width: 100%;
+  max-width: 100%;
+  /* Optionally, you can use table-layout: auto; (or fixed) depending on your design */
+}
+
+@media (max-width: 400px) {
+  /* Make sure the table container takes full width and scrolls horizontally if needed */
+  .table-responsive {
+    width: 100% !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+  
+  #dataTable {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+
+@media (max-width: 768px) {
+    .btn {
+        width: 100%; /* Buttons take full width on mobile */
+        margin-bottom: 5px;
+    }
+}
 </style>
 @section('content')
 
-<div class="card p-3 mb-3">
+<div class="card p-3 mb-3 form">
     <form id="addDocumentForm" enctype="multipart/form-data">
         @csrf
         <div class="row">
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3 col-12 mb-3">
                 <input type="text" name="name" class="form-control" placeholder="Document Name" required>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3 col-12 mb-3">
                 <input type="text" name="drafter" class="form-control" placeholder="From/Origin" required>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3 col-12 mb-3">
                 <select name="category" class="form-control">
                     <option value="Incoming">Incoming</option>
                     <option value="Outgoing">Outgoing</option>
                 </select>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3 col-12 mb-3">
                 <select name="purpose" class="form-control">
                       <option value="For Signature">For Signature</option>
                       <option value="For Route">For Route</option>
@@ -39,10 +75,11 @@
                       <option value="For Info">For Info</option>
                       <option value="For Reference">For Reference</option>
                       <option value="For Concurrence">For Concurrence</option>
+                      <option value="For Concurrence">For Attendance</option>
                       <option value="Others">Others</option>
                 </select>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3 col-12 mb-3">
                 <input type="file" name="file" class="form-control">
             </div>
         </div>
@@ -60,7 +97,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Add Document</button>
+        <button type="submit" class="btn btn-primary w-100">Add Document</button>
     </form>
 </div>
     <!-- Filter Input -->
@@ -91,21 +128,22 @@
         <button id="exportExcel" class="btn btn-secondary">Export to Excel</button>
       </div>
     </div>
+    <div class="table-responsive">
     <table class="table table-bordered" id="dataTable" >
         <thead>
             <tr>
-                <th rowspan="2">Category</th>
-                <th rowspan="2">Document Name</th>
-                <th rowspan="2">From/Origin</th>
-                <th rowspan="2">Purpose</th>
-                <th colspan="4" class="text-center">Routing History</th>
-                <th rowspan="2">Actions</th>
+                <th style="width: 5%;" rowspan="2">Category</th>
+                <th style="width: 20%;"rowspan="2">Document Name</th>
+                <th style="width: 10%;" rowspan="2">From/Origin</th>
+                <th style="width: 10%;" rowspan="2">Purpose</th>
+                <th style="width: 40%;" colspan="4" class="text-center">Routing History</th>
+                <th  rowspan="2">Document Actions</th>
             </tr>
             <tr>
                 <th>Br/Off/Unit</th>
                 <th>Received By</th>
                 <th>Date and Time</th>
-                <th>Actions</th>
+                <th>Routing Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -124,11 +162,11 @@
         <td rowspan="{{ $rowspan }}">
             <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
             <!-- NEW: Inline edit buttons for document details -->
-            <button class="btn btn-warning btn-sm editDocumentBtn">Edit Document</button>
-            <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save Document</button>
+            <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
+            <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
             <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
             <!-- End NEW -->
-            <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Add Routing</button>
+            <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Route</button>
             <form action="{{ route('documents.destroy', $document->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                 @csrf
                 @method('DELETE')
@@ -157,11 +195,11 @@
                 <td rowspan="{{ $rowspan }}">
                     <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
                     <!-- NEW: Inline edit buttons for document details -->
-                    <button class="btn btn-warning btn-sm editDocumentBtn">Edit Document</button>
-                    <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save Document</button>
+                    <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
+                    <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
                     <!-- End NEW -->
-                    <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Add Routing</button>
+                    <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Route</button>
                     <form action="{{ route('documents.destroy', $document->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                         @csrf
                         @method('DELETE')
@@ -184,14 +222,14 @@
 @endif
 
 
-                <!-- Add Routing Modal -->
+                <!-- Route Modal -->
                 <div class="modal fade" id="addRoutingModal-{{ $document->id }}" tabindex="-1" aria-labelledby="addRoutingModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <form action="{{ route('locations.store') }}" method="POST">
                                 @csrf
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Routing History</h5>
+                                    <h5 class="modal-title">Add Route</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
@@ -211,7 +249,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary">Add Routing</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
                             </form>
                         </div>
@@ -257,6 +295,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 
 <!-- Ensure Bootstrap JS is loaded -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -388,6 +427,12 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
     function updateTable(doc) {
         let tableBody = $("tbody");
         let rowspan = Math.max(1, doc.locations.length);
+        let datee = new Date(doc.locations[0].timestamp);
+        let formattedDate = datee.getFullYear() + "-" +
+            ("0" + (datee.getMonth() + 1)).slice(-2) + "-" +
+            ("0" + datee.getDate()).slice(-2) + " " +
+            ("0" + datee.getHours()).slice(-2) + ":" +
+            ("0" + datee.getMinutes()).slice(-2);
         let newRow = $("<tr>").html(`
             <td rowspan="${rowspan}" class="document-detail" data-field="category">${doc.category}</td>
             <td rowspan="${rowspan}" class="document-detail" data-field="name">${doc.name}</td>
@@ -396,7 +441,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             ${doc.locations.length > 0 ? `
                 <td  class="editable" data-field="location">${doc.locations[0].location}</td>
                 <td  class="editable" data-field="receiver">${doc.locations[0].receiver}</td>
-                <td  class="editable" data-field="timestamp">${new Date(doc.locations[0].timestamp).toLocaleString()}</td>
+                <td  class="editable" data-field="timestamp">${formattedDate}</td>
                 <td>
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
@@ -406,10 +451,10 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             ` : `<td colspan="4" class="text-center text-muted">No routing history available</td>`}
             <td rowspan="${rowspan}">
                 <a href="/documents/${doc.id}" class="btn btn-info btn-sm">View</a>
-                <button class="btn btn-warning btn-sm editDocumentBtn">Edit Document</button>
-                <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save Document</button>
+                <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
+                <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
                 <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
-                <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-${doc.id}">Add Routing</button>
+                <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-${doc.id}">Route</button>
                 <form action="/documents/${doc.id}" method="POST" class="delete-form" data-id="${doc.id}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                     <input type="hidden" name="_method" value="DELETE">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -420,12 +465,18 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
         newRow.attr('data-document-id', `${doc.id}`);
         newRow.attr('data-id', `${doc.locations[0].id}`);
 
-        tableBody.append(newRow);
+        tableBody.prepend(newRow);
         doc.locations.slice(1).forEach(function(location) {
+            let datee = new Date(location.timestamp);
+            let formattedDate = datee.getFullYear() + "-" +
+                ("0" + (datee.getMonth() + 1)).slice(-2) + "-" +
+                ("0" + datee.getDate()).slice(-2) + " " +
+                ("0" + datee.getHours()).slice(-2) + ":" +
+                ("0" + datee.getMinutes()).slice(-2);
             let historyRow = $("<tr>").html(`
                 <td>${location.location}</td>
                 <td>${location.receiver}</td>
-                <td>${new Date(location.timestamp).toLocaleString()}</td>
+                <td>${formattedDate}</td>
                 <td>
                     <button class="btn btn-warning btn-sm editRoutingBtn" data-bs-toggle="modal" data-bs-target="#editRoutingModal-${location.id}">Edit</button>
                     <form action="/locations/${location.id}" method="POST" class="delete-form" data-id="${location.id}" style="display:inline;">
@@ -457,7 +508,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                     let now = new Date();
                     let formattedDate = now.getFullYear() + "-" +
                         ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
-                        ("0" + now.getDate()).slice(-2) + "T" +
+                        ("0" + now.getDate()).slice(-2) + " " +
                         ("0" + now.getHours()).slice(-2) + ":" +
                         ("0" + now.getMinutes()).slice(-2);
                     dateInputs.forEach(input => {
