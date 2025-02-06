@@ -529,19 +529,6 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
 $('#addDocumentForm').submit(function(e) {
     e.preventDefault();
 
-    let fileInput = $('input[name="file"]')[0];
-    if (!fileInput.files.length) {
-        alert('Please select a file.');
-        return;
-    }
-
-    // Get the file and define chunk size (100KB)
-    let file = fileInput.files[0];
-    let chunkSize = 100 * 1024; // 100KB
-    let totalSize = file.size;
-    let totalChunks = Math.ceil(totalSize / chunkSize);
-    let currentChunk = 0;
-
     // Collect additional form fields into an object
     let formDataFields = {
         name: $('input[name="name"]').val(),
@@ -553,6 +540,50 @@ $('#addDocumentForm').submit(function(e) {
         timestamp: $('input[name="timestamp"]').val(),
         _token: "{{ csrf_token() }}"
     };
+
+    // Check if a file is selected
+    let fileInput = $('input[name="file"]')[0];
+    if (!fileInput.files.length) {
+        // No file selected, proceed without file uploading
+        $.ajax({
+            url: "{{ route('documents.upload_chunk') }}", // Use same endpoint or adjust as needed
+            type: "POST",
+            data: JSON.stringify(formDataFields),
+            processData: false,
+            contentType: "application/json",
+            success: function(response) {
+                if (response.success) {
+                    alert("Document added successfully!");
+                    updateTable(response.document);
+                    $('#addDocumentForm')[0].reset();
+                    let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+                    let now = new Date();
+                    let formattedDate = now.getFullYear() + "-" +
+                        ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+                        ("0" + now.getDate()).slice(-2) + " " +
+                        ("0" + now.getHours()).slice(-2) + ":" +
+                        ("0" + now.getMinutes()).slice(-2);
+                    dateInputs.forEach(input => {
+                        if (!input.value) {
+                            input.value = formattedDate;
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr);
+                alert("Something's wrong");
+            }
+        });
+        return; // End execution here if no file is present
+    }
+
+    // If a file is selected, proceed with the chunked upload.
+    let file = fileInput.files[0];
+    let chunkSize = 128 * 1024; // 128KB per chunk
+    let totalSize = file.size;
+    let totalChunks = Math.ceil(totalSize / chunkSize);
+    let currentChunk = 0;
 
     function uploadChunk() {
         let start = currentChunk * chunkSize;
@@ -588,8 +619,9 @@ $('#addDocumentForm').submit(function(e) {
                         // Continue uploading the next chunk
                         uploadChunk();
                     } else {
-                        alert("File uploaded successfully in chunks!");
-                        $('#addDocumentForm')[0].reset();
+                        // All chunks uploaded; execute success block:
+                        if (response.success) {
+                            alert("Document added successfully!");
                             updateTable(response.document);
                             $('#addDocumentForm')[0].reset();
                             let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
@@ -604,7 +636,7 @@ $('#addDocumentForm').submit(function(e) {
                                     input.value = formattedDate;
                                 }
                             });
-                        // Optionally, update your UI (e.g., update a table with the new document)
+                        }
                     }
                 },
                 error: function(xhr) {
@@ -620,6 +652,7 @@ $('#addDocumentForm').submit(function(e) {
     // Start the chunked upload process
     uploadChunk();
 });
+
 
     $('#addRoutingModal form').submit(function (e) {
         e.preventDefault();

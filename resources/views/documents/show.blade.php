@@ -95,12 +95,10 @@
     <!-- PDF Viewer (Hidden by Default) -->
 @if ($document->file_path)
     <div id="pdfViewer" style="display: none;">
-        <iframe src="{{ route('documents.downloadFile', $document->id) }}" width="100%" height="600px"></iframe>
+        <iframe id="pdfIframe" width="100%" height="600px"></iframe>
     </div>
 @endif
-@if ($document->file_path)
-    <a href="{{ route('documents.downloadFile', $document->id) }}" class="btn btn-primary btn-sm" target="_blank">Download PDF</a>
-@endif
+
 
 </div>
 
@@ -108,8 +106,14 @@
 <script>
     function togglePDF() {
         let pdfViewer = document.getElementById("pdfViewer");
+        let pdfIframe = document.getElementById("pdfIframe");
         let button = document.querySelector(".btn-primary");
+
         if (pdfViewer.style.display === "none") {
+            // Set the src if it hasn't been set yet
+            if (!pdfIframe.src || pdfIframe.src.trim() === "") {
+                pdfIframe.src = "{{ route('documents.downloadFile', $document->id) }}";
+            }
             pdfViewer.style.display = "block";
             button.textContent = "Hide PDF";
         } else {
