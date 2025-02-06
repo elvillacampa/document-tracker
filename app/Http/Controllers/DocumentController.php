@@ -34,27 +34,20 @@ class DocumentController extends Controller
         ]);
     
         $filePath = null;
+
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->store('documents', 'public');
         }
-    
-        // $document = Document::create([
-        //     'name' => $validated['name'],
-        //     'drafter' => $validated['drafter'],
-        //     'category' => $validated['category'],
-        //     'purpose' => $validated['purpose'],
-        //     'file_path' => $filePath,
-        // ]);
-    
         $document = Document::create([
             ...$validated,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
+            'file_path' => $filePath,
         ]);
         $location = $document->locations()->create([
             'location' => $validated['location'],
             'receiver' => $validated['receiver'],
             'timestamp' => $validated['timestamp'],
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
 
 

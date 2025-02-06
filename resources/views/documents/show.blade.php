@@ -59,7 +59,7 @@
                     <col style="width: 20%;">  <!-- Br/Off/Unit -->
                     <col style="width: 20%;">  <!-- Received By -->
                     <col style="width: 10%;">  <!-- Date and Time -->
-                    <col style="width: 10%;">  <!-- Logs (Smaller Column) -->
+                    <col style="width: 20%;">  <!-- Logs (Smaller Column) -->
                 </colgroup>
                 <thead>
                     <tr>

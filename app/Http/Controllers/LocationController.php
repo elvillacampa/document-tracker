@@ -16,11 +16,14 @@ class LocationController extends Controller
             'timestamp' => 'required|date',
         ]);
     
+
         $location = Location::create([
             'document_id' => $request->document_id,
             'location' => $request->location,
             'receiver' => $request->receiver,
             'timestamp' => $request->timestamp,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
         return redirect()->route('documents.index')->with('success', 'Location added successfully!');
     
@@ -36,7 +39,10 @@ class LocationController extends Controller
         ]);
     
         $location->update($validatedData);
-    
+        $location->update([
+            ...$validatedData,
+            'updated_by' => auth()->id(),
+        ]);
         return response()->json([
             'success' => true,
             'message' => 'Routing history updated successfully!',

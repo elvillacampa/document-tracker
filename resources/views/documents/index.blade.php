@@ -68,14 +68,15 @@
             </div>
             <div class="col-md-3 col-12 mb-3">
                 <select name="purpose" class="form-control">
+                      <option value="For Concurrence">For Approval</option>
                       <option value="For Signature">For Signature</option>
-                      <option value="For Route">For Route</option>
-                      <option value="RWC">RWC</option>
-                      <option value="For Appropriate Action">For Appropriate Action</option>
-                      <option value="For Info">For Info</option>
-                      <option value="For Reference">For Reference</option>
                       <option value="For Concurrence">For Concurrence</option>
+                      <option value="For Appropriate Action">For Appropriate Action</option>
                       <option value="For Concurrence">For Attendance</option>
+                      <option value="For Route">For Route</option>
+                      <option value="For Reference">For Reference</option>
+                      <option value="For Info">For Info</option>
+                      <option value="RWC">RWC</option>
                       <option value="Others">Others</option>
                 </select>
             </div>
@@ -455,9 +456,9 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                 <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
                 <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
                 <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-${doc.id}">Route</button>
-                <form action="/documents/${doc.id}" method="POST" class="delete-form" data-id="${doc.id}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
-                    <input type="hidden" name="_method" value="DELETE">
+                <form action="/documents/${doc.id}" method="POST" class="delete-form" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="_method" value="DELETE">
                     <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="${doc.id}">Delete</button>
                 </form>
             </td>
