@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Models\Location;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class DocumentController extends Controller
 {
@@ -22,43 +23,55 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'drafter' => 'required|string|max:255',
-            'category' => 'required|string',
-            'purpose' => 'required|string|max:255',
-            'file' => 'nullable|file|mimes:pdf',
-            'location' => 'required|string|max:255',
-            'receiver' => 'required|string|max:255',
-            'timestamp' => 'required|date',
-        ]);
-    
-        $filePath = null;
 
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('documents', 'public');
+        try{
+            
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'drafter' => 'required|string|max:255',
+                'category' => 'required|string',
+                'purpose' => 'required|string|max:255',
+                'file' => 'nullable|file|mimes:pdf',
+                'location' => 'required|string|max:255',
+                'receiver' => 'required|string|max:255',
+                'timestamp' => 'required|date',
+            ]);
+        
+            $filePath = null;
+
+            if ($request->hasFile('file')) {
+                $filePath = $request->file('file')->store('documents', 'public');
+            }
+            $document = Document::create([
+                ...$validated,
+                'file_path' => $filePath,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+            $location = $document->locations()->create([
+                'location' => $validated['location'],
+                'receiver' => $validated['receiver'],
+                'timestamp' => $validated['timestamp'],
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+
+
+
+            return response()->json([
+                'success' => true,
+                'document' => $document->load('locations')  // Ensure locations are included
+            ]);
+        
+
+        } catch (\Throwable $e) {
+
+            return $e;
+
         }
-        $document = Document::create([
-            ...$validated,
-            'file_path' => $filePath,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
-        $location = $document->locations()->create([
-            'location' => $validated['location'],
-            'receiver' => $validated['receiver'],
-            'timestamp' => $validated['timestamp'],
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
 
 
 
-        return response()->json([
-            'success' => true,
-            'document' => $document->load('locations')  // Ensure locations are included
-        ]);
-    
     }
     
 public function update(Request $request, $id)
