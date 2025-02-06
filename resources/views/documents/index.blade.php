@@ -491,20 +491,98 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
         });
     }
 
-    $('#addDocumentForm').submit(function (e) {
-        e.preventDefault();
-        let formData = new FormData(this);
+    // $('#addDocumentForm').submit(function (e) {
+    //     e.preventDefault();
+    //     let formData = new FormData(this);
+    //     $.ajax({
+    //         url: "{{ route('documents.store') }}",
+    //         type: "POST",
+    //         data: formData,
+    //         processData: false,
+    //         contentType: false,
+    //         success: function (response) {
+    //             if (response.success) {
+    //                 alert("Document added successfully!");
+    //                 updateTable(response.document);
+    //                 $('#addDocumentForm')[0].reset();
+    //                 let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+    //                 let now = new Date();
+    //                 let formattedDate = now.getFullYear() + "-" +
+    //                     ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+    //                     ("0" + now.getDate()).slice(-2) + " " +
+    //                     ("0" + now.getHours()).slice(-2) + ":" +
+    //                     ("0" + now.getMinutes()).slice(-2);
+    //                 dateInputs.forEach(input => {
+    //                     if (!input.value) {
+    //                         input.value = formattedDate;
+    //                     }
+    //                 });
+    //             }
+    //         },
+    //         error: function (xhr) {
+    //             alert("Error: " + xhr.responseJSON.message);
+    //         }
+    //     });
+    // });
+
+$('#addDocumentForm').submit(function (e) {
+    e.preventDefault();
+
+    // Gather form field values (except file)
+    let name = $('input[name="name"]').val();
+    let drafter = $('input[name="drafter"]').val();
+    let category = $('select[name="category"]').val();
+    let purpose = $('select[name="purpose"]').val();
+    let locationVal = $('input[name="location"]').val();
+    let receiver = $('input[name="receiver"]').val();
+    let timestamp = $('input[name="timestamp"]').val();
+
+    // Prepare the data object with CSRF token
+    let formData = {
+        name: name,
+        drafter: drafter,
+        category: category,
+        purpose: purpose,
+        location: locationVal,
+        receiver: receiver,
+        timestamp: timestamp,
+        _token: "{{ csrf_token() }}"
+    };
+
+    let fileInput = $('#addDocumentForm input[name="file"]')[0];
+    if (fileInput.files.length > 0) {
+        let file = fileInput.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            // e.target.result contains the Base64-encoded string, including a data URL prefix
+            // (e.g., "data:application/pdf;base64,JVBERi0xLjcK...").
+            formData.file = e.target.result; // Save the entire data URL or remove the prefix if desired.
+
+            // Now send the JSON payload
+            sendFormData(formData);
+        };
+
+        reader.readAsDataURL(file);
+    } else {
+        // No file selected—send the form without a file
+        sendFormData(formData);
+    }
+
+    function sendFormData(data) {
         $.ajax({
             url: "{{ route('documents.store') }}",
             type: "POST",
-            data: formData,
+            data: JSON.stringify(data),
             processData: false,
-            contentType: false,
+            contentType: "application/json",
             success: function (response) {
                 if (response.success) {
                     alert("Document added successfully!");
                     updateTable(response.document);
                     $('#addDocumentForm')[0].reset();
+
+                    // Update any date inputs if needed
                     let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
                     let now = new Date();
                     let formattedDate = now.getFullYear() + "-" +
@@ -520,10 +598,11 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                 }
             },
             error: function (xhr) {
-                alert("Error: " + xhr.responseJSON.message);
+                alert("Error: " + (xhr.responseJSON.message || xhr.statusText));
             }
         });
-    });
+    }
+});
 
     $('#addRoutingModal form').submit(function (e) {
         e.preventDefault();

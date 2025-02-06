@@ -20,44 +20,71 @@ class DocumentController extends Controller
         return view('documents.index', compact('documents'));
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'drafter' => 'required|string|max:255',
-            'category' => 'required|string',
-            'purpose' => 'required|string|max:255',
-            'file' => 'nullable|file|mimes:pdf',
-            'location' => 'required|string|max:255',
-            'receiver' => 'required|string|max:255',
-            'timestamp' => 'required|date',
-        ]);
-    
-        $filePath = null;
+public function store(Request $request)
+{
+    // Validate incoming data; note that 'file' is now a string (Base64) rather than a file upload
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'drafter' => 'required|string|max:255',
+        'category' => 'required|string',
+        'purpose' => 'required|string|max:255',
+        'file' => 'nullable|string',  // Expect a Base64 string
+        'location' => 'required|string|max:255',
+        'receiver' => 'required|string|max:255',
+        'timestamp' => 'required|date',
+    ]);
 
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('documents', 'public');
+    $filePath = null;
+
+    if (!empty($validated['file'])) {
+        $fileData = $validated['file'];
+
+        // Remove data URL prefix if it exists (e.g., "data:application/pdf;base64,")
+        if (preg_match('/^data:(.*);base64,/', $fileData, $matches)) {
+            $fileData = substr($fileData, strpos($fileData, ',') + 1);
         }
-        $document = Document::create([
-            ...$validated,
-            'file_path' => $filePath,
-        ]);
-        $location = $document->locations()->create([
-            'location' => $validated['location'],
-            'receiver' => $validated['receiver'],
-            'timestamp' => $validated['timestamp'],
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
 
+        $decodedFile = base64_decode($fileData);
+        if ($decodedFile === false) {
+            return response()->json(['success' => false, 'message' => 'Invalid file data'], 400);
+        }
 
+        // Determine file extension; for example, if you expect PDFs:
+        $extension = 'pdf';  // You could also parse $request->input('fileType') if you pass it from JS.
+        $fileName = time() . '_' . preg_replace('/\s+/', '_', $validated['name']) . '.' . $extension;
 
-        return response()->json([
-            'success' => true,
-            'document' => $document->load('locations')  // Ensure locations are included
-        ]);
-    
+        // Store the file on the public disk inside 'documents' directory
+        $filePath = Storage::disk('public')->put('documents/' . $fileName, $decodedFile)
+            ? 'documents/' . $fileName
+            : null;
     }
+
+    // Create the document record; adjust based on your model structure.
+    $document = Document::create([
+        'name' => $validated['name'],
+        'drafter' => $validated['drafter'],
+        'category' => $validated['category'],
+        'purpose' => $validated['purpose'],
+        'file_path' => $filePath,
+        'created_by' => auth()->id(),
+        'updated_by' => auth()->id(),
+    ]);
+
+    // Create the routing location record.
+    $location = $document->locations()->create([
+        'location' => $validated['location'],
+        'receiver' => $validated['receiver'],
+        'timestamp' => $validated['timestamp'],
+        'created_by' => auth()->id(),
+        'updated_by' => auth()->id(),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'document' => $document->load('locations')  // Include related locations if needed.
+    ]);
+}
+
     
 public function update(Request $request, $id)
 {
