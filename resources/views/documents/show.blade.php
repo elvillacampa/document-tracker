@@ -98,6 +98,9 @@
         <iframe src="{{ route('documents.downloadFile', $document->id) }}" width="100%" height="600px"></iframe>
     </div>
 @endif
+@if ($document->file_path)
+    <a href="{{ route('documents.downloadFile', $document->id) }}" class="btn btn-primary btn-sm" target="_blank">Download PDF</a>
+@endif
 
 </div>
 
