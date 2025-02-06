@@ -22,6 +22,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 	Route::put('/documents/{id}', [DocumentController::class, 'update'])->name('documents.update');
 	Route::put('/documents/{id}/update-file', [DocumentController::class, 'updateFile'])->name('documents.updateFile');
+
+Route::post('/documents/upload-chunk', [DocumentController::class, 'uploadChunk'])->name('documents.upload_chunk');
+
+    
     // Routes for Locations
     Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
     Route::delete('/locations/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');

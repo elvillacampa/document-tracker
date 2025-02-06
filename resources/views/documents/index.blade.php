@@ -491,40 +491,135 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
         });
     }
 
-    $('#addDocumentForm').submit(function (e) {
-        e.preventDefault();
-        let formData = new FormData(this);
-        $.ajax({
-            url: "{{ route('documents.store') }}",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.success) {
-                    alert("Document added successfully!");
-                    updateTable(response.document);
-                    $('#addDocumentForm')[0].reset();
-                    let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
-                    let now = new Date();
-                    let formattedDate = now.getFullYear() + "-" +
-                        ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
-                        ("0" + now.getDate()).slice(-2) + " " +
-                        ("0" + now.getHours()).slice(-2) + ":" +
-                        ("0" + now.getMinutes()).slice(-2);
-                    dateInputs.forEach(input => {
-                        if (!input.value) {
-                            input.value = formattedDate;
-                        }
-                    });
+    // $('#addDocumentForm').submit(function (e) {
+    //     e.preventDefault();
+    //     let formData = new FormData(this);
+    //     $.ajax({
+    //         url: "{{ route('documents.store') }}",
+    //         type: "POST",
+    //         data: formData,
+    //         processData: false,
+    //         contentType: false,
+    //         success: function (response) {
+    //             if (response.success) {
+    //                 alert("Document added successfully!");
+    //                 updateTable(response.document);
+    //                 $('#addDocumentForm')[0].reset();
+    //                 let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+    //                 let now = new Date();
+    //                 let formattedDate = now.getFullYear() + "-" +
+    //                     ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+    //                     ("0" + now.getDate()).slice(-2) + " " +
+    //                     ("0" + now.getHours()).slice(-2) + ":" +
+    //                     ("0" + now.getMinutes()).slice(-2);
+    //                 dateInputs.forEach(input => {
+    //                     if (!input.value) {
+    //                         input.value = formattedDate;
+    //                     }
+    //                 });
+    //             }
+    //         },
+    //         error: function (xhr) {
+    //                 console.log(xhr);
+    //                 alert("Something's wrong")
+    //         }
+    //     });
+    // });
+
+$('#addDocumentForm').submit(function(e) {
+    e.preventDefault();
+
+    let fileInput = $('input[name="file"]')[0];
+    if (!fileInput.files.length) {
+        alert('Please select a file.');
+        return;
+    }
+
+    // Get the file and define chunk size (100KB)
+    let file = fileInput.files[0];
+    let chunkSize = 100 * 1024; // 100KB
+    let totalSize = file.size;
+    let totalChunks = Math.ceil(totalSize / chunkSize);
+    let currentChunk = 0;
+
+    // Collect additional form fields into an object
+    let formDataFields = {
+        name: $('input[name="name"]').val(),
+        drafter: $('input[name="drafter"]').val(),
+        category: $('select[name="category"]').val(),
+        purpose: $('select[name="purpose"]').val(),
+        location: $('input[name="location"]').val(),
+        receiver: $('input[name="receiver"]').val(),
+        timestamp: $('input[name="timestamp"]').val(),
+        _token: "{{ csrf_token() }}"
+    };
+
+    function uploadChunk() {
+        let start = currentChunk * chunkSize;
+        let end = Math.min(start + chunkSize, totalSize);
+        let blob = file.slice(start, end);
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            // The result is a Base64-encoded data URL
+            let chunkData = e.target.result;
+
+            // Build payload with metadata for this chunk
+            let payload = {
+                ...formDataFields,
+                fileName: file.name,
+                fileType: file.type,
+                fileSize: totalSize,
+                chunkData: chunkData,  // Base64 data URL for the chunk
+                chunkIndex: currentChunk,
+                totalChunks: totalChunks
+            };
+
+            $.ajax({
+                url: "{{ route('documents.upload_chunk') }}", // Endpoint for chunk uploads
+                type: "POST",
+                data: JSON.stringify(payload),
+                processData: false,
+                contentType: "application/json",
+                success: function(response) {
+                    console.log('Chunk ' + currentChunk + ' uploaded.');
+                    currentChunk++;
+                    if (currentChunk < totalChunks) {
+                        // Continue uploading the next chunk
+                        uploadChunk();
+                    } else {
+                        alert("File uploaded successfully in chunks!");
+                        $('#addDocumentForm')[0].reset();
+                            updateTable(response.document);
+                            $('#addDocumentForm')[0].reset();
+                            let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+                            let now = new Date();
+                            let formattedDate = now.getFullYear() + "-" +
+                                ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+                                ("0" + now.getDate()).slice(-2) + " " +
+                                ("0" + now.getHours()).slice(-2) + ":" +
+                                ("0" + now.getMinutes()).slice(-2);
+                            dateInputs.forEach(input => {
+                                if (!input.value) {
+                                    input.value = formattedDate;
+                                }
+                            });
+                        // Optionally, update your UI (e.g., update a table with the new document)
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Error uploading chunk " + currentChunk, xhr);
+                    alert("Error uploading file. Please try again.");
                 }
-            },
-            error: function (xhr) {
-                    console.log(xhr);
-                    alert("Something's wrong")
-            }
-        });
-    });
+            });
+        };
+
+        reader.readAsDataURL(blob);
+    }
+
+    // Start the chunked upload process
+    uploadChunk();
+});
 
     $('#addRoutingModal form').submit(function (e) {
         e.preventDefault();
