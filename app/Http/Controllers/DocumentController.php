@@ -206,6 +206,48 @@ public function update(Request $request, $id)
         return redirect()->route('documents.index')->with('success', 'Document deleted successfully!');
     }
 
+    public function downloadFile($id)
+    {
+        // Retrieve the document record (adjust this if you need to include locations or other relations)
+        $document = Document::findOrFail($id);
+
+        // Build the full path to the file (assuming files are stored on the 'public' disk)
+        $path = storage_path('app/public/' . $document->file_path);
+
+        // Check if the file exists
+        if (!file_exists($path)) {
+            abort(404, 'File not found.');
+        }
+
+        // Define the chunk size (e.g., 1MB per chunk)
+        $chunkSize = 1024 * 1024; // 1 MB
+
+        // Create a stream callback function to read and output the file in chunks
+        $stream = function() use ($path, $chunkSize) {
+            $handle = fopen($path, 'rb');
+            if ($handle === false) {
+                return;
+            }
+            while (!feof($handle)) {
+                // Read a chunk of the file
+                echo fread($handle, $chunkSize);
+                // Flush the output buffers to the browser
+                ob_flush();
+                flush();
+            }
+            fclose($handle);
+        };
+
+        // Return a streaming response with appropriate headers
+        return response()->stream($stream, 200, [
+            'Content-Type' => mime_content_type($path),
+            'Content-Length' => filesize($path),
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+            'Accept-Ranges' => 'bytes',
+        ]);
+    }
+
+
     public function updateFile(Request $request, $id)
     {
         $request->validate([

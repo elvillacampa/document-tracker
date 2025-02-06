@@ -93,11 +93,12 @@
     </div>
 
     <!-- PDF Viewer (Hidden by Default) -->
-    @if ($document->file_path)
-        <div id="pdfViewer" style="display: none;">
-            <iframe src="{{ asset('storage/' . $document->file_path) }}" width="100%" height="600px"></iframe>
-        </div>
-    @endif
+@if ($document->file_path)
+    <div id="pdfViewer" style="display: none;">
+        <iframe src="{{ route('documents.downloadFile', $document->id) }}" width="100%" height="600px"></iframe>
+    </div>
+@endif
+
 </div>
 
 <!-- JavaScript for Print and PDF Toggle -->

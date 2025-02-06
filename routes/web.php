@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::post('/documents/upload-chunk', [DocumentController::class, 'uploadChunk'])->name('documents.upload_chunk');
 
+Route::get('/documents/download/{id}', [DocumentController::class, 'downloadFile'])
+    ->name('documents.downloadFile');
     
     // Routes for Locations
     Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
