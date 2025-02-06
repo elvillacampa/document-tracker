@@ -220,7 +220,7 @@ public function update(Request $request, $id)
         }
 
         // Define the chunk size (e.g., 1MB per chunk)
-        $chunkSize = 1024 * 1024; // 1 MB
+        $chunkSize = 100 * 1024; // 1 MB
 
         // Create a stream callback function to read and output the file in chunks
         $stream = function() use ($path, $chunkSize) {
