@@ -520,7 +520,12 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                 }
             },
             error: function (xhr) {
-                alert("Error: " + xhr.responseJSON.message);
+                if(xhr){
+                    alert("Error: " + xhr.responseJSON.message);
+                }else{
+                    console.log(xhr);
+                    alert("Something's wrong!")
+                }
             }
         });
     });
