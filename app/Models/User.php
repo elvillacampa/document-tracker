@@ -45,4 +45,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isEncoder()
+    {
+        return $this->role === 'encoder';
+    }
+
+    public function isViewer()
+    {
+        return $this->role === 'viewer';
+    }
+
 }

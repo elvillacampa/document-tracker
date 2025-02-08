@@ -48,7 +48,7 @@
     }
 }
 </style>
-@section('content')
+                            @if(Auth::user()->role != 'viewer')
 
 <div class="card p-3 mb-3 form">
     <form id="addDocumentForm" enctype="multipart/form-data">
@@ -129,6 +129,8 @@
         <button id="exportExcel" class="btn btn-secondary">Export to Excel</button>
       </div>
     </div>
+                            @endif
+
     <div class="table-responsive">
     <table class="table table-bordered" id="dataTable" >
         <thead>
@@ -138,13 +140,16 @@
                 <th style="width: 10%;" rowspan="2">From/Origin</th>
                 <th style="width: 10%;" rowspan="2">Purpose</th>
                 <th style="width: 40%;" colspan="4" class="text-center">Routing History</th>
-                <th  rowspan="2">Document Actions</th>
+                <th  rowspan="2" style="text-align: right;">Document Actions</th>
             </tr>
             <tr>
                 <th>Br/Off/Unit</th>
                 <th>Received By</th>
-                <th>Date and Time</th>
-                <th>Routing Actions</th>
+                <th >Date and Time</th>
+                @if(Auth::user()->role != 'viewer')
+                 <th style="text-align: right;">Routing Actions</th>
+                @endif
+
             </tr>
         </thead>
         <tbody>
@@ -160,9 +165,10 @@
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="drafter">{{ $document->drafter }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="purpose">{{ $document->purpose }}</td>
         <td colspan="4" class="text-center text-muted">No routing history available</td>
-        <td rowspan="{{ $rowspan }}">
+        <td rowspan="{{ $rowspan }}" style="text-align: right;">
             <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
             <!-- NEW: Inline edit buttons for document details -->
+            @if(Auth::user()->role != 'viewer')
             <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
             <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
             <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
@@ -173,6 +179,8 @@
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
             </form>
+            @endif
+
         </td>
     </tr>
 @else
@@ -187,15 +195,19 @@
                 <td class="editable routing-history" data-field="location">{{ $location->location }}</td>
                 <td class="editable" data-field="receiver">{{ $location->receiver }}</td>
                 <td class="editable" data-field="timestamp">{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
-                <td>
+                <td style="text-align: right;">
+                    @if(Auth::user()->role != 'viewer')
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
                     <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="{{ $location->id }}">Delete</button>
+                    @endif
+
                 </td>
-                <td rowspan="{{ $rowspan }}">
+                <td rowspan="{{ $rowspan }}" style="text-align: right;">
                     <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
                     <!-- NEW: Inline edit buttons for document details -->
+                            @if(Auth::user()->role != 'viewer')
                     <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
@@ -206,16 +218,23 @@
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
+                            @endif
+
+
                 </td>
             @else
                 <td class="editable" data-field="location">{{ $location->location }}</td>
                 <td class="editable" data-field="receiver">{{ $location->receiver }}</td>
                 <td class="editable" data-field="timestamp">{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
-                <td>
+                <td style="text-align: right;">
+                            @if(Auth::user()->role != 'viewer')
+
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
                     <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="{{ $location->id }}">Delete</button>
+                            @endif
+
                 </td>
             @endif
         </tr>
@@ -443,14 +462,14 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                 <td  class="editable" data-field="location">${doc.locations[0].location}</td>
                 <td  class="editable" data-field="receiver">${doc.locations[0].receiver}</td>
                 <td  class="editable" data-field="timestamp">${formattedDate}</td>
-                <td>
+                <td style="text-align: right;">
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
                     <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="${doc.locations[0].id }">Delete</button>
                 </td>
             ` : `<td colspan="4" class="text-center text-muted">No routing history available</td>`}
-            <td rowspan="${rowspan}">
+            <td rowspan="${rowspan}" style="text-align: right;">
                 <a href="/documents/${doc.id}" class="btn btn-info btn-sm">View</a>
                 <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
                 <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
@@ -491,67 +510,16 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
         });
     }
 
-    // $('#addDocumentForm').submit(function (e) {
-    //     e.preventDefault();
-    //     let formData = new FormData(this);
-    //     $.ajax({
-    //         url: "{{ route('documents.store') }}",
-    //         type: "POST",
-    //         data: formData,
-    //         processData: false,
-    //         contentType: false,
-    //         success: function (response) {
-    //             if (response.success) {
-    //                 alert("Document added successfully!");
-    //                 updateTable(response.document);
-    //                 $('#addDocumentForm')[0].reset();
-    //                 let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
-    //                 let now = new Date();
-    //                 let formattedDate = now.getFullYear() + "-" +
-    //                     ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
-    //                     ("0" + now.getDate()).slice(-2) + " " +
-    //                     ("0" + now.getHours()).slice(-2) + ":" +
-    //                     ("0" + now.getMinutes()).slice(-2);
-    //                 dateInputs.forEach(input => {
-    //                     if (!input.value) {
-    //                         input.value = formattedDate;
-    //                     }
-    //                 });
-    //             }
-    //         },
-    //         error: function (xhr) {
-    //                 console.log(xhr);
-    //                 alert("Something's wrong")
-    //         }
-    //     });
-    // });
-
-$('#addDocumentForm').submit(function(e) {
-    e.preventDefault();
-
-    // Collect additional form fields into an object
-    let formDataFields = {
-        name: $('input[name="name"]').val(),
-        drafter: $('input[name="drafter"]').val(),
-        category: $('select[name="category"]').val(),
-        purpose: $('select[name="purpose"]').val(),
-        location: $('input[name="location"]').val(),
-        receiver: $('input[name="receiver"]').val(),
-        timestamp: $('input[name="timestamp"]').val(),
-        _token: "{{ csrf_token() }}"
-    };
-
-    // Check if a file is selected
-    let fileInput = $('input[name="file"]')[0];
-    if (!fileInput.files.length) {
-        // No file selected, proceed without file uploading
+    $('#addDocumentForm').submit(function (e) {
+        e.preventDefault();
+        let formData = new FormData(this);
         $.ajax({
-            url: "{{ route('documents.upload_chunk') }}", // Use same endpoint or adjust as needed
+            url: "{{ route('documents.store') }}",
             type: "POST",
-            data: JSON.stringify(formDataFields),
+            data: formData,
             processData: false,
-            contentType: "application/json",
-            success: function(response) {
+            contentType: false,
+            success: function (response) {
                 if (response.success) {
                     alert("Document added successfully!");
                     updateTable(response.document);
@@ -570,88 +538,139 @@ $('#addDocumentForm').submit(function(e) {
                     });
                 }
             },
-            error: function(xhr) {
-                console.log(xhr);
-                alert("Something's wrong");
+            error: function (xhr) {
+                    console.log(xhr);
+                    alert("Something's wrong")
             }
         });
-        return; // End execution here if no file is present
-    }
+    });
 
-    // If a file is selected, proceed with the chunked upload.
-    let file = fileInput.files[0];
-    let chunkSize = 128 * 1024; // 128KB per chunk
-    let totalSize = file.size;
-    let totalChunks = Math.ceil(totalSize / chunkSize);
-    let currentChunk = 0;
+// $('#addDocumentForm').submit(function(e) {
+//     e.preventDefault();
 
-    function uploadChunk() {
-        let start = currentChunk * chunkSize;
-        let end = Math.min(start + chunkSize, totalSize);
-        let blob = file.slice(start, end);
-        let reader = new FileReader();
+//     // Collect additional form fields into an object
+//     let formDataFields = {
+//         name: $('input[name="name"]').val(),
+//         drafter: $('input[name="drafter"]').val(),
+//         category: $('select[name="category"]').val(),
+//         purpose: $('select[name="purpose"]').val(),
+//         location: $('input[name="location"]').val(),
+//         receiver: $('input[name="receiver"]').val(),
+//         timestamp: $('input[name="timestamp"]').val(),
+//         _token: "{{ csrf_token() }}"
+//     };
 
-        reader.onload = function(e) {
-            // The result is a Base64-encoded data URL
-            let chunkData = e.target.result;
+//     // Check if a file is selected
+//     let fileInput = $('input[name="file"]')[0];
+//     if (!fileInput.files.length) {
+//         // No file selected, proceed without file uploading
+//         $.ajax({
+//             url: "{{ route('documents.upload_chunk') }}", // Use same endpoint or adjust as needed
+//             type: "POST",
+//             data: JSON.stringify(formDataFields),
+//             processData: false,
+//             contentType: "application/json",
+//             success: function(response) {
+//                 if (response.success) {
+//                     alert("Document added successfully!");
+//                     updateTable(response.document);
+//                     $('#addDocumentForm')[0].reset();
+//                     let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+//                     let now = new Date();
+//                     let formattedDate = now.getFullYear() + "-" +
+//                         ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+//                         ("0" + now.getDate()).slice(-2) + " " +
+//                         ("0" + now.getHours()).slice(-2) + ":" +
+//                         ("0" + now.getMinutes()).slice(-2);
+//                     dateInputs.forEach(input => {
+//                         if (!input.value) {
+//                             input.value = formattedDate;
+//                         }
+//                     });
+//                 }
+//             },
+//             error: function(xhr) {
+//                 console.log(xhr);
+//                 alert("Something's wrong");
+//             }
+//         });
+//         return; // End execution here if no file is present
+//     }
 
-            // Build payload with metadata for this chunk
-            let payload = {
-                ...formDataFields,
-                fileName: file.name,
-                fileType: file.type,
-                fileSize: totalSize,
-                chunkData: chunkData,  // Base64 data URL for the chunk
-                chunkIndex: currentChunk,
-                totalChunks: totalChunks
-            };
+//     // If a file is selected, proceed with the chunked upload.
+//     let file = fileInput.files[0];
+//     let chunkSize = 128 * 1024; // 128KB per chunk
+//     let totalSize = file.size;
+//     let totalChunks = Math.ceil(totalSize / chunkSize);
+//     let currentChunk = 0;
 
-            $.ajax({
-                url: "{{ route('documents.upload_chunk') }}", // Endpoint for chunk uploads
-                type: "POST",
-                data: JSON.stringify(payload),
-                processData: false,
-                contentType: "application/json",
-                success: function(response) {
-                    console.log('Chunk ' + currentChunk + ' uploaded.');
-                    currentChunk++;
-                    if (currentChunk < totalChunks) {
-                        // Continue uploading the next chunk
-                        uploadChunk();
-                    } else {
-                        // All chunks uploaded; execute success block:
-                        if (response.success) {
-                            alert("Document added successfully!");
-                            updateTable(response.document);
-                            $('#addDocumentForm')[0].reset();
-                            let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
-                            let now = new Date();
-                            let formattedDate = now.getFullYear() + "-" +
-                                ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
-                                ("0" + now.getDate()).slice(-2) + " " +
-                                ("0" + now.getHours()).slice(-2) + ":" +
-                                ("0" + now.getMinutes()).slice(-2);
-                            dateInputs.forEach(input => {
-                                if (!input.value) {
-                                    input.value = formattedDate;
-                                }
-                            });
-                        }
-                    }
-                },
-                error: function(xhr) {
-                    console.error("Error uploading chunk " + currentChunk, xhr);
-                    alert("Error uploading file. Please try again.");
-                }
-            });
-        };
+//     function uploadChunk() {
+//         let start = currentChunk * chunkSize;
+//         let end = Math.min(start + chunkSize, totalSize);
+//         let blob = file.slice(start, end);
+//         let reader = new FileReader();
 
-        reader.readAsDataURL(blob);
-    }
+//         reader.onload = function(e) {
+//             // The result is a Base64-encoded data URL
+//             let chunkData = e.target.result;
 
-    // Start the chunked upload process
-    uploadChunk();
-});
+//             // Build payload with metadata for this chunk
+//             let payload = {
+//                 ...formDataFields,
+//                 fileName: file.name,
+//                 fileType: file.type,
+//                 fileSize: totalSize,
+//                 chunkData: chunkData,  // Base64 data URL for the chunk
+//                 chunkIndex: currentChunk,
+//                 totalChunks: totalChunks
+//             };
+
+//             $.ajax({
+//                 url: "{{ route('documents.upload_chunk') }}", // Endpoint for chunk uploads
+//                 type: "POST",
+//                 data: JSON.stringify(payload),
+//                 processData: false,
+//                 contentType: "application/json",
+//                 success: function(response) {
+//                     console.log('Chunk ' + currentChunk + ' uploaded.');
+//                     currentChunk++;
+//                     if (currentChunk < totalChunks) {
+//                         // Continue uploading the next chunk
+//                         uploadChunk();
+//                     } else {
+//                         // All chunks uploaded; execute success block:
+//                         if (response.success) {
+//                             alert("Document added successfully!");
+//                             updateTable(response.document);
+//                             $('#addDocumentForm')[0].reset();
+//                             let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+//                             let now = new Date();
+//                             let formattedDate = now.getFullYear() + "-" +
+//                                 ("0" + (now.getMonth() + 1)).slice(-2) + "-" +
+//                                 ("0" + now.getDate()).slice(-2) + " " +
+//                                 ("0" + now.getHours()).slice(-2) + ":" +
+//                                 ("0" + now.getMinutes()).slice(-2);
+//                             dateInputs.forEach(input => {
+//                                 if (!input.value) {
+//                                     input.value = formattedDate;
+//                                 }
+//                             });
+//                         }
+//                     }
+//                 },
+//                 error: function(xhr) {
+//                     console.error("Error uploading chunk " + currentChunk, xhr);
+//                     alert("Error uploading file. Please try again.");
+//                 }
+//             });
+//         };
+
+//         reader.readAsDataURL(blob);
+//     }
+
+//     // Start the chunked upload process
+//     uploadChunk();
+// });
 
 
     $('#addRoutingModal form').submit(function (e) {

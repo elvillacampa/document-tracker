@@ -5,7 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ProfileController;
-
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Middleware\AdminMiddleware;
 // Authentication Routes
 Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('login', [AuthController::class, 'login']);
@@ -46,4 +47,16 @@ Route::get('/documents/download/{id}', [DocumentController::class, 'downloadFile
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+});
+
+
+Route::group([
+    'prefix' => 'admin',
+    'middleware' => ['auth', AdminMiddleware::class], // using FQCN
+], function () {
+    Route::get('/users', [UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::put('/users/{user}/approve', [UserManagementController::class, 'approve'])->name('admin.users.approve');
+    Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::post('/users/{user}/update', [\App\Http\Controllers\Admin\UserManagementController::class, 'update'])
+        ->name('admin.users.update');
 });

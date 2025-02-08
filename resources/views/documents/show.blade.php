@@ -5,6 +5,8 @@
     <!-- Top Row: All Controls Aligned to the Right -->
     <div class="d-flex justify-content-end align-items-center mb-2">
         <!-- File Upload/Update Form -->
+                                    @if(Auth::user()->role != 'viewer')
+
         <form action="{{ route('documents.updateFile', $document->id) }}" method="POST" enctype="multipart/form-data" class="mb-0 me-2">
             @csrf
             @method('PUT')
@@ -19,6 +21,7 @@
                 </button>
             </div>
         </form>
+                            @endif
 
         <!-- Show PDF Button or No File Message -->
         <div class="me-2">
