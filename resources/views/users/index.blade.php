@@ -13,6 +13,7 @@
                 <th>Email</th>
                 <th>Approved</th>
                 <th>Role</th>
+                <th>Last Login</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -30,6 +31,7 @@
                         @endif
                     </td>
                     <td class="user-role">{{ ucfirst($user->role) }}</td>
+                    <td class="user-role">{{ $user->lastSession? $user->lastSession->last_activity->date.'('.$user->lastSession->last_activity->ip_address.')':'-' }}</td>
                     <td>
                         @if(!$user->approved)
                             <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" style="display:inline-block;">

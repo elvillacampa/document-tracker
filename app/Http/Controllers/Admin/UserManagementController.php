@@ -12,7 +12,8 @@ class UserManagementController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::with('lastSession')->get();
+
         return view('users.index', compact('users'));
     }
 

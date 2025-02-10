@@ -61,4 +61,17 @@ class User extends Authenticatable
         return $this->role === 'viewer';
     }
 
+    public function sessions()
+    {
+        // Here, 'user_id' is the foreign key on the sessions table,
+        // and 'id' is the local key on the users table.
+        return $this->hasMany(\App\Models\Session::class, 'user_id', 'id');
+    }
+
+    public function lastSession()
+    {
+        return $this->hasOne(\App\Models\Session::class, 'user_id', 'id')
+                    ->latest('last_activity');
+    }
+
 }
