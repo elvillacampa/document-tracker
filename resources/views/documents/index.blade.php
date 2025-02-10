@@ -345,16 +345,66 @@
             @endforeach
         </tbody>
     </table>
+<div class="d-flex justify-content-between align-items-center mt-3 w-100">
+    <!-- Records Per Page Form -->
+    <form method="GET" action="{{ route('documents.index') }}" id="perPageForm" class="d-flex align-items-center">
+        <label for="perPageSelect" class="me-2 mb-0">Records per page:</label>
+        <select name="per_page_select" id="perPageSelect" class="form-select d-inline w-auto">
+            <option value="1" {{ request('per_page_select', 1) == 1 ? 'selected' : '' }}>1</option>
+            <option value="5" {{ request('per_page_select', 5) == 5 ? 'selected' : '' }}>5</option>
+            <option value="10" {{ request('per_page_select', 10) == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page_select') == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page_select') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page_select') == 100 ? 'selected' : '' }}>100</option>
+            <option value="custom" {{ request('per_page_select') == 'custom' ? 'selected' : '' }}>Custom</option>
+        </select>
+        <div id="customPerPageContainer" class="{{ request()->has('per_page_custom') ? 'ms-3' : 'd-none ms-3' }}">
+            <label for="perPageCustom" class="me-2 mb-0">Custom:</label>
+            <input type="number" name="per_page_custom" id="perPageCustom" class="form-control d-inline w-auto" min="1" value="{{ request('per_page_custom') }}">
+        </div>
+    </form>
+
+    <!-- Pagination Links -->
+    <div class="d-flex">
+        {{ $documents->appends(request()->query())->links('pagination::bootstrap-5') }}
     </div>
+</div>
+    </div>
+
 
 <!-- Ensure Bootstrap JS is loaded -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Get references to the DOM elements.
+    const perPageSelect = document.getElementById('perPageSelect');
+    const customContainer = document.getElementById('customPerPageContainer');
+    const customInput = document.getElementById('perPageCustom');
+    const perPageForm = document.getElementById('perPageForm');
+
+    // When the select value changes…
+    perPageSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            // Show the custom input and ensure its name attribute is set.
+            customContainer.classList.remove('d-none');
+            customInput.setAttribute('name', 'per_page_custom');
+        } else {
+            // Hide the custom input, clear its value, and remove its name attribute.
+            customContainer.classList.add('d-none');
+            customInput.value = '';
+            customInput.removeAttribute('name');
+            // Immediately submit the form so the URL reflects the selected option.
+            perPageForm.submit();
+        }
+    });
+
+    // When the custom input value changes, auto-submit the form.
+    customInput.addEventListener('change', function() {
+        perPageForm.submit();
+    });
 
 var current_modal = '';
 var current_document = '';
 var userRole = @json(Auth::user()->role);
-console.log(userRole)
     const purposes = [
       { value: "For Out", text: "For Out" },
       { value: "For Concurrence", text: "For Concurrence" },

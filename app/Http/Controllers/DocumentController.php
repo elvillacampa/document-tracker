@@ -11,14 +11,21 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $documents = Document::with(['locations' => function ($query) {
-            $query->orderBy('timestamp', 'asc'); // Sort locations by timestamp (earliest first)
-        }])
-        ->orderBy('date_rcvd_sent', 'desc')
-        ->get();
-
+        // Determine the records per page:
+        if ($request->input('per_page_select') === 'custom' && $request->filled('per_page_custom')) {
+            $perPage = (int) $request->input('per_page_custom');
+        } else {
+            $perPage = (int) $request->input('per_page_select', 10); // Default to 10 if nothing is set.
+        }
+        
+        // Fetch the documents with pagination.
+        $documents = Document::with('locations')
+                      ->orderBy('date_rcvd_sent', 'desc')
+                      ->paginate($perPage)
+                      ->appends($request->query());
+        
         return view('documents.index', compact('documents'));
     }
 

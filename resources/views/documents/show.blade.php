@@ -83,7 +83,7 @@
         <!-- Show PDF Button or No File Message -->
         <div class="me-2">
             @if ($document->file_path)
-                <button class="btn btn-primary btn-sm" onclick="togglePDF()">Show PDF</button>
+                <button class="btn btn-primary btn-sm w-100" onclick="togglePDF()">Show PDF</button>
             @else
                 <span class="text-danger">No file available</span>
             @endif
