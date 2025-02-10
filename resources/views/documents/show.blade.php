@@ -61,6 +61,7 @@
                     <col style="width: 2%;">   <!-- # -->
                     <col style="width: 20%;">  <!-- Br/Off/Unit -->
                     <col style="width: 20%;">  <!-- Received By -->
+                    <col style="width: 20%;">  <!-- Received By -->
                     <col style="width: 10%;">  <!-- Date and Time -->
                     <col style="width: 20%;">  <!-- Logs (Smaller Column) -->
                 </colgroup>
@@ -69,6 +70,7 @@
                         <th>#</th>
                         <th>Br/Off/Unit</th>
                         <th>Received By</th>
+                        <th>Dispatched By</th>
                         <th>Date and Time</th>
                         <th>Logs</th> <!-- New Column for Creator and Updater Logs -->
                     </tr>
@@ -79,6 +81,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $location->location }}</td>
                             <td>{{ $location->receiver }}</td>
+                            <td>{{ $location->dispatcher }}</td>
                             <td>{{ $location->timestamp? \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') :'-' }}</td>
                             <td>
                                 <strong>Recorded By: </strong> {{ $location->creator->name ?? 'Unknown' }}<br>
