@@ -9,7 +9,7 @@ class Location extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['document_id', 'location', 'receiver', 'timestamp', 'created_by', 'updated_by'];
+    protected $fillable = ['document_id', 'location', 'receiver', 'timestamp', 'created_by', 'updated_by','dispatcher','created_at','updated_at'];
 
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');

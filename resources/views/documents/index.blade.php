@@ -48,25 +48,29 @@
     }
 }
 </style>
-                            @if(Auth::user()->role != 'viewer')
+      @if(Auth::user()->role != 'viewer')
 
 <div class="card p-3 mb-3 form">
     <form id="addDocumentForm" enctype="multipart/form-data">
         @csrf
         <div class="row">
-            <div class="col-md-3 col-12 mb-3">
+            <div class="col-md-4 col-12 mb-3">
+                <label for="name" class="form-label text-primary">Document Name / Subject</label>
                 <input type="text" name="name" class="form-control" placeholder="Document Name" required>
             </div>
-            <div class="col-md-3 col-12 mb-3">
+            <div class="col-md-2 col-12 mb-3">
+                <label for="drafter" class="form-label text-primary">Originator</label>
                 <input type="text" name="drafter" class="form-control" placeholder="From/Origin" required>
             </div>
-            <div class="col-md-3 col-12 mb-3">
+            <div class="col-md-2 col-12 mb-3">
+                <label for="category" class="form-label text-primary">Category</label>
                 <select name="category" class="form-control">
                     <option value="Incoming">Incoming</option>
                     <option value="Outgoing">Outgoing</option>
                 </select>
             </div>
-            <div class="col-md-3 col-12 mb-3">
+            <div class="col-md-2 col-12 mb-3">
+                <label for="purpose" class="form-label text-primary">Purpose</label>
                 <select name="purpose" class="form-control">
                       <option value="For Concurrence">For Approval</option>
                       <option value="For Signature">For Signature</option>
@@ -80,56 +84,64 @@
                       <option value="Others">Others</option>
                 </select>
             </div>
-            <div class="col-md-3 col-12 mb-3">
+            <div class="col-md-2 col-12 mb-3">
+                <label for="category" class="form-label text-primary">File (Scanned PDF)</label>
                 <input type="file" name="file" class="form-control">
             </div>
         </div>
 
         <h5 class="mt-3">Initial Routing History</h5>
         <div class="row">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
+                <label for="location" class="form-label text-primary">Dispatched To</label>
                 <input type="text" name="location" class="form-control" placeholder="Br/Off/Unit" required>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
+                <label for="receiver" class="form-label text-primary">Received By</label>
                 <input type="text" name="receiver" class="form-control" placeholder="Received By" required>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-md-3 mb-3">
+                <label for="receiver" class="form-label text-primary">Dispatched By</label>
+                <input type="text" name="dispatcher" class="form-control" placeholder="Dispatched By" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="timestamp" class="form-label text-primary">Date / Time</label>
                 <input type="datetime-local" name="timestamp" class="form-control" required>
             </div>
         </div>
+        <div class="row">
+          <div class="col d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Add Document</button>
+          </div>
+        </div>
 
-        <button type="submit" class="btn btn-primary w-100">Add Document</button>
     </form>
 </div>
     <!-- Filter Input -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label for="tableFilter" class="form-label">Filter Table:</label>
-        <input type="text" id="tableFilter" class="form-control" placeholder="Type to filter...">
-      </div>
-      <div class="col-md-4">
-        <label for="dateFilter" class="form-label">Filter by Date:</label>
-        <div class="input-group">
-          <input type="date" id="dateFilter" class="form-control">
-          <button class="btn btn-outline-secondary" type="button" id="clearDateFilter">Clear</button>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <label for="categoryFilter" class="form-label">Filter by Category:</label>
-        <select id="categoryFilter" class="form-control">
-          <option value="">All</option>
-          <option value="Incoming">Incoming</option>
-          <option value="Outgoing">Outgoing</option>
-          <!-- Add additional category options as needed -->
-        </select>
-      </div>
+<div class="row justify-content-end mb-2">
+  
+  <div class="col-auto">
+    <input type="text" id="tableFilter" class="form-control" placeholder="Type to filter...">
+  </div>
+  <div class="col-auto">
+    <div class="input-group">
+      <input type="date" id="dateFilter" class="form-control">
+      <button class="btn btn-outline-secondary" type="button" id="clearDateFilter">Clear</button>
     </div>
-    <div class="row mb-3" >
-      <div class="col-md-4 ">
-        <button id="exportExcel" class="btn btn-secondary">Export to Excel</button>
-      </div>
-    </div>
-                            @endif
+  </div>
+  <div class="col-auto">
+    <select id="categoryFilter" class="form-control">
+      <option value="">All</option>
+      <option value="Incoming">Incoming</option>
+      <option value="Outgoing">Outgoing</option>
+    </select>
+  </div>
+  <div class="col-auto" style="margin-top: -3px;">
+    <button id="exportExcel" name="export" class="btn btn-secondary mb-1">Export to Excel</button>
+  </div>
+</div>
+
+                    @endif
 
     <div class="table-responsive">
     <table class="table table-bordered" id="dataTable" >
@@ -137,14 +149,15 @@
             <tr>
                 <th style="width: 5%;" rowspan="2">Category</th>
                 <th style="width: 20%;"rowspan="2">Document Name</th>
-                <th style="width: 10%;" rowspan="2">From/Origin</th>
+                <th style="width: 10%;" rowspan="2">Originator</th>
                 <th style="width: 10%;" rowspan="2">Purpose</th>
-                <th style="width: 40%;" colspan="4" class="text-center">Routing History</th>
+                <th style="" colspan="5" class="text-center">Routing History</th>
                 <th  rowspan="2" style="text-align: right;">Document Actions</th>
             </tr>
             <tr>
-                <th>Br/Off/Unit</th>
+                <th>TO: Br/Off/Unit</th>
                 <th>Received By</th>
+                <th>Dispatched By</th>
                 <th >Date and Time</th>
                 @if(Auth::user()->role != 'viewer')
                  <th style="text-align: right;">Routing Actions</th>
@@ -164,7 +177,7 @@
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="name">{{ $document->name }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="drafter">{{ $document->drafter }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="purpose">{{ $document->purpose }}</td>
-        <td colspan="4" class="text-center text-muted">No routing history available</td>
+        <td colspan="5" class="text-center text-muted">No routing history available</td>
         <td rowspan="{{ $rowspan }}" style="text-align: right;">
             <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
             <!-- NEW: Inline edit buttons for document details -->
@@ -173,7 +186,7 @@
             <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
             <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
             <!-- End NEW -->
-            <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Route</button>
+            <button class="btn btn-success btn-sm addRoutingBtn"  onclick="openModal('addRoutingModal-','{{ $document->id }}')" >Route</button>
             <form action="{{ route('documents.destroy', $document->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                 @csrf
                 @method('DELETE')
@@ -194,6 +207,7 @@
                 <!-- Routing history cells for the first row -->
                 <td class="editable routing-history" data-field="location">{{ $location->location }}</td>
                 <td class="editable" data-field="receiver">{{ $location->receiver }}</td>
+                <td class="editable" data-field="dispatcher">{{ $location->dispatcher }}</td>
                 <td class="editable" data-field="timestamp">{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
                 <td style="text-align: right;">
                     @if(Auth::user()->role != 'viewer')
@@ -207,33 +221,34 @@
                 <td rowspan="{{ $rowspan }}" style="text-align: right;">
                     <a href="{{ route('documents.show', $document->id) }}" class="btn btn-info btn-sm">View</a>
                     <!-- NEW: Inline edit buttons for document details -->
-                            @if(Auth::user()->role != 'viewer')
+      @if(Auth::user()->role != 'viewer')
                     <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveDocumentBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelDocumentBtn d-none">Cancel</button>
                     <!-- End NEW -->
-                    <button class="btn btn-success btn-sm addRoutingBtn" data-bs-toggle="modal" data-bs-target="#addRoutingModal-{{ $document->id }}">Route</button>
+                    <button class="btn btn-success btn-sm addRoutingBtn"   onclick="openModal('addRoutingModal-','{{ $document->id }}')">Route</button>
                     <form action="{{ route('documents.destroy', $document->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                            @endif
+                    @endif
 
 
                 </td>
             @else
                 <td class="editable" data-field="location">{{ $location->location }}</td>
                 <td class="editable" data-field="receiver">{{ $location->receiver }}</td>
+                <td class="editable" data-field="dispatcher">{{ $location->dispatcher }}</td>
                 <td class="editable" data-field="timestamp">{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
                 <td style="text-align: right;">
-                            @if(Auth::user()->role != 'viewer')
+      @if(Auth::user()->role != 'viewer')
 
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
                     <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
                     <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
                     <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="{{ $location->id }}">Delete</button>
-                            @endif
+                    @endif
 
                 </td>
             @endif
@@ -246,7 +261,7 @@
                 <div class="modal fade" id="addRoutingModal-{{ $document->id }}" tabindex="-1" aria-labelledby="addRoutingModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form action="{{ route('locations.store') }}" method="POST">
+                            <form action="{{ route('locations.store') }}" method="POST" class="ajax-form">
                                 @csrf
                                 <div class="modal-header">
                                     <h5 class="modal-title">Add Route</h5>
@@ -261,6 +276,10 @@
                                     <div class="mb-3">
                                         <label>Received By</label>
                                         <input type="text" name="receiver" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Dispatched By</label>
+                                        <input type="text" name="dispatcher" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
                                         <label>Date and Time</label>
@@ -320,6 +339,27 @@
 <!-- Ensure Bootstrap JS is loaded -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+
+var current_modal = '';
+var current_document = '';
+
+    function openModal(modalname, id){
+            current_modal = modalname+id;
+            current_document = id;
+            // Get the modal element by its ID
+            var myModalEl = document.getElementById(current_modal);
+
+            // Create a new Bootstrap Modal instance (or get the existing instance)
+            var myModal = bootstrap.Modal.getInstance(myModalEl);
+            if (!myModal) {
+              myModal = new bootstrap.Modal(myModalEl);
+            }
+            // Show the modal
+            myModal.show();
+    }
+
+
+
 document.addEventListener("DOMContentLoaded", function() {
     let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
     let now = new Date();
@@ -344,8 +384,8 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
     e.preventDefault();
     let button = $(this);
     let row = button.closest('tr');
-    let id = button.attr('data-id');
     let docId = row.attr('data-document-id');
+    let id = button.attr('data-id');
 
     if (!id) {
         alert("Error: Unable to find location ID.");
@@ -373,7 +413,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                     // We remove all sibling <td>s until we hit the cell with a rowspan (the document actions cell).
                     routingCell.nextUntil('td[rowspan]').remove();
                     // Update the routing cell to span all 4 routing columns.
-                    routingCell.attr('colspan', 4)
+                    routingCell.attr('colspan', 5)
            .addClass('text-center')
            .html('<span class="text-muted">No routing history available</span>');
 
@@ -461,6 +501,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             ${doc.locations.length > 0 ? `
                 <td  class="editable" data-field="location">${doc.locations[0].location}</td>
                 <td  class="editable" data-field="receiver">${doc.locations[0].receiver}</td>
+                <td  class="editable" data-field="dispatcher">${doc.locations[0].dispatcher}</td>
                 <td  class="editable" data-field="timestamp">${formattedDate}</td>
                 <td style="text-align: right;">
                     <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
@@ -468,7 +509,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                     <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
                     <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="${doc.locations[0].id }">Delete</button>
                 </td>
-            ` : `<td colspan="4" class="text-center text-muted">No routing history available</td>`}
+            ` : `<td colspan="5" class="text-center text-muted">No routing history available</td>`}
             <td rowspan="${rowspan}" style="text-align: right;">
                 <a href="/documents/${doc.id}" class="btn btn-info btn-sm">View</a>
                 <button class="btn btn-warning btn-sm editDocumentBtn">Edit</button>
@@ -496,6 +537,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             let historyRow = $("<tr>").html(`
                 <td>${location.location}</td>
                 <td>${location.receiver}</td>
+                <td>${location.dispatcher}</td>
                 <td>${formattedDate}</td>
                 <td>
                     <button class="btn btn-warning btn-sm editRoutingBtn" data-bs-toggle="modal" data-bs-target="#editRoutingModal-${location.id}">Edit</button>
@@ -544,6 +586,9 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             }
         });
     });
+
+
+
 
 // $('#addDocumentForm').submit(function(e) {
 //     e.preventDefault();
@@ -673,39 +718,120 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
 // });
 
 
-    $('#addRoutingModal form').submit(function (e) {
-        e.preventDefault();
-        let form = $(this);
-        let formData = new FormData(form[0]);
-        $.ajax({
-            url: form.attr("action"),
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (response.success) {
-                    alert("Routing history added successfully!");
-                    $('#addRoutingModal').modal('hide');
-                    location.reload();
-                }
-            },
-            error: function (xhr) {
-                alert("Error: " + xhr.responseJSON.message);
+    // $("body").on("click", ".addRoutingModal", function () {
+    //     alert();
+    // });
+
+function updateDocumentRowspan(docId) {
+  // Select all rows that belong to this document.
+  let docRows = $(`tr[data-document-id="${docId}"]`);
+  let newRowspan = docRows.length + 1;
+  
+  // The document row is the first row in the group.
+  let documentRow = docRows.first();
+  
+  // Update the rowspan on all cells that are part of the document details.
+  // In your structure, these cells have a class "document-detail" and the last actions cell also uses rowspan.
+  documentRow.find('td.document-detail').attr('rowspan', newRowspan);
+  
+  // Update the actions cell (if needed) that has the rowspan (assumed to be the last cell in the row)
+  documentRow.find('td[rowspan]').not('.document-detail').attr('rowspan', newRowspan);
+  
+  console.log(`Updated rowspan for document ${docId} to ${newRowspan}`);
+}
+
+function updateRoutingTable(data, doc)
+{
+
+        let docRows = $('tr[data-document-id="'+doc+'"]');
+        let datetimeLocalValue = data.timestamp.replace("T", " ");
+
+          let newRoutingRow = `
+            <tr data-document-id="${doc}" data-id="${data.id}">
+              <td class="editable routing-history" data-field="location">${data.location}</td>
+              <td class="editable" data-field="receiver">${data.receiver}</td>
+              <td class="editable" data-field="dispatcher">${data.dispatcher}</td>
+              <td class="editable" data-field="timestamp">${datetimeLocalValue}</td>
+              <td style="text-align: right;">
+                <button class="btn btn-warning btn-sm editRoutingBtn">Edit</button>
+                <button class="btn btn-success btn-sm saveRoutingBtn d-none">Save</button>
+                <button class="btn btn-secondary btn-sm cancelRoutingBtn d-none">Cancel</button>
+                <button class="btn btn-danger btn-sm deleteRoutingBtn" data-id="${data.id}">Delete</button>
+              </td>
+            </tr>
+          `;
+          newRowspan = docRows.length + 1;
+            let documentRow = docRows.first();
+            documentRow.find('td.document-detail').attr('rowspan', newRowspan);
+  documentRow.find('td[rowspan]').not('.document-detail').attr('rowspan', newRowspan);
+           $(docRows.last()).after(newRoutingRow);
+}
+
+
+$("[id^='addRoutingModal-'] form").submit(function(e) {
+    e.preventDefault();
+    let form = $(this);
+    let formData = new FormData(form[0]);
+
+    $.ajax({
+        url: form.attr("action"),
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                // Hide the modal that contains the form
+                form[0].reset();
+
+                form.closest('.modal').modal('hide');
+                // Optionally, update your page content here without reloading
+                updateRoutingTable(response.data, current_document)
             }
-        });
+        },
+        error: function(xhr) {
+            alert("Error: " + (xhr.responseJSON.message || "An error occurred."));
+        }
     });
+});
+
+
+// $('.ajax-form').submit(function(e) {
+//     e.preventDefault();
+//     let form = $(this);
+//     let formData = new FormData(form[0]);
+//     $.ajax({
+//         url: form.attr("action"),
+//         type: "POST",
+//         data: formData,
+//         processData: false,
+//         contentType: false,
+//         success: function(response) {
+//             if (response.success) {
+//                 alert("Routing history added successfully!");
+//                 form.closest('.modal').modal('hide');
+//             }
+//         },
+//         error: function(xhr) {
+//             alert("Error: " + (xhr.responseJSON.message || "An error occurred."));
+//         }
+//     });
+// });
 
     $("tbody").on("click", ".editRoutingBtn", function () {
         let row = $(this).closest("tr");
         row.find(".editable").each(function () {
-            let text = $(this).text().trim();
+            // Save the original text in a data attribute
+            let originalText = $(this).text().trim();
+            $(this).data("original", originalText);
+
             let field = $(this).data("field");
             if (field === "timestamp") {
-                let dateTime = new Date(text).toISOString().slice(0, 16);
-                $(this).html(`<input type="datetime-local" class="form-control" name="${field}" value="${dateTime}">`);
+                // Convert to datetime-local format (replace space with "T")
+                let datetimeLocalValue = originalText.replace(" ", "T");
+                $(this).html(`<input type="datetime-local" class="form-control" name="${field}" value="${datetimeLocalValue}">`);
             } else {
-                $(this).html(`<input type="text" class="form-control" name="${field}" value="${text}">`);
+                $(this).html(`<input type="text" class="form-control" name="${field}" value="${originalText}">`);
             }
         });
         row.find(".editRoutingBtn").addClass("d-none");
@@ -715,13 +841,13 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
     $("tbody").on("click", ".cancelRoutingBtn", function () {
         let row = $(this).closest("tr");
         row.find(".editable").each(function () {
+            // Retrieve the original text stored when editing started
+            let originalText = $(this).data("original");
             let field = $(this).data("field");
-            let inputValue = $(this).find("input").val();
-            if (field === "timestamp") {
-                // Replace the "T" with a space for display
-                inputValue = inputValue.replace("T", " ");
-            }
-            $(this).text(inputValue);
+
+            // If it's the timestamp field, no further conversion is needed because the original value was stored in its display format.
+            // (If your original display format already has a space, it will be restored as-is.)
+            $(this).text(originalText);
         });
 
         row.find(".saveRoutingBtn, .cancelRoutingBtn").addClass("d-none");
@@ -735,6 +861,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             _token: "{{ csrf_token() }}",
             location: row.find("input[name='location']").val(),
             receiver: row.find("input[name='receiver']").val(),
+            dispatcher: row.find("input[name='dispatcher']").val(),
             timestamp: row.find("input[name='timestamp']").val(),
         };
         $.ajax({

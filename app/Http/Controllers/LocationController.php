@@ -1,33 +1,43 @@
 <?php
 
 namespace App\Http\Controllers;
-
+// require 'vendor/autoload.php'; 
 use Illuminate\Http\Request;
 use App\Models\Location;
-
+use Carbon\Carbon;
 class LocationController extends Controller
 {
-    public function store(Request $request)
-    {
-        $request->validate([
-            'document_id' => 'required|exists:documents,id',
-            'location' => 'required|string',
-            'receiver' => 'required|string',
-            'timestamp' => 'required|date',
-        ]);
-    
+public function store(Request $request)
+{
 
-        $location = Location::create([
-            'document_id' => $request->document_id,
-            'location' => $request->location,
-            'receiver' => $request->receiver,
-            'timestamp' => $request->timestamp,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
-        return redirect()->route('documents.index')->with('success', 'Location added successfully!');
-    
+    $request->validate([
+        'document_id' => 'required|exists:documents,id',
+        'location'    => 'required|string',
+        'receiver'    => 'required|string',
+        'dispatcher'  => 'required|string',  // Ensure this matches your form field name
+        'timestamp'   => 'required|date',
+    ]);
+
+    $location = Location::create([
+        'document_id' => $request->document_id,
+        'location'    => $request->location,
+        'receiver'    => $request->receiver,
+        'dispatcher'  => $request->dispatcher, // Note: use 'dispatcher' here
+        'timestamp'   => $request->timestamp,
+        'created_by'  => auth()->id(),
+        'created_at'  => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
+        'updated_by'  => auth()->id(),
+        'updated_at'  => null,
+    ]);
+
+    // Check if the request expects JSON (AJAX)
+    if ($request->ajax()) {
+        return response()->json(['success' => true, 'message' => 'Location added successfully!','data' => $location]);
     }
+
+    return redirect()->route('documents.index')->with('success', 'Location added successfully!');
+}
+
     
     
     public function update(Request $request, Location $location)
@@ -35,6 +45,7 @@ class LocationController extends Controller
         $validatedData = $request->validate([
             'location' => 'required|string',
             'receiver' => 'required|string',
+            'dispatcher' => 'required|string',
             'timestamp' => 'required|date',
         ]);
     
@@ -42,6 +53,7 @@ class LocationController extends Controller
         $location->update([
             ...$validatedData,
             'updated_by' => auth()->id(),
+            'updated_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
         ]);
         return response()->json([
             'success' => true,

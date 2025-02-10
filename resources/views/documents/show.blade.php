@@ -33,7 +33,7 @@
         </div>
 
         <!-- Print Button -->
-        <button class="btn btn-success btn-sm me-2" onclick="printDetails()">Print</button>
+        <button class="btn btn-success btn-sm me-2" onclick="printDetails()">Print Details</button>
         <!-- Back Button -->
         <a href="{{ route('documents.index') }}" class="btn btn-secondary btn-sm">Back</a>
     </div>
@@ -42,11 +42,11 @@
     <div id="printSection">
         <h3>{{ $document->name }}</h3>
         <p><strong>Category:</strong> {{ $document->category }}</p>
-        <p><strong>Br/Off/Unit:</strong> {{ $document->drafter }}</p>
+        <p><strong>Originator:</strong> {{ $document->drafter }}</p>
 
         <!-- Added Creator and Last Updated By -->
-        <p><strong>Created By:</strong> {{ $document->creator->name ?? 'Unknown' }} on {{ $document->created_at->format('Y-m-d H:i') }}</p>
-        <p><strong>Last Updated By:</strong> {{ $document->updater->name ?? 'Unknown' }} on {{ $document->updated_at->format('Y-m-d H:i') }}</p>
+        <p><strong>Recorded By:</strong> {{ $document->creator->name ?? 'Unknown' }} on {{ $document->created_at->format('Y-m-d H:i') }}</p>
+        <p><strong>Last Updated By:</strong> {{ $document->updater->name ?? 'Unknown' }} on {{ $document->updated_at? $document->updated_at->format('Y-m-d H:i'):'-' }}</p>
 
         <h4>Routing History:</h4>
 
@@ -58,7 +58,7 @@
         @if ($sortedLocations->isNotEmpty())
             <table class="table table-bordered">
                 <colgroup>
-                    <col style="width: 5%;">   <!-- # -->
+                    <col style="width: 2%;">   <!-- # -->
                     <col style="width: 20%;">  <!-- Br/Off/Unit -->
                     <col style="width: 20%;">  <!-- Received By -->
                     <col style="width: 10%;">  <!-- Date and Time -->
@@ -81,10 +81,10 @@
                             <td>{{ $location->receiver }}</td>
                             <td>{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
                             <td>
-                                <strong>Created By: </strong> {{ $location->creator->name ?? 'Unknown' }}<br>
+                                <strong>Recorded By: </strong> {{ $location->creator->name ?? 'Unknown' }}<br>
                                 <small>on {{ $location->created_at->format('Y-m-d H:i') }}</small><br>
                                 <strong>Last Updated By: </strong> {{ $location->updater->name ?? 'Unknown' }}<br>
-                                <small>on {{ $location->updated_at->format('Y-m-d H:i') }}</small>
+                                <small>on  {{ $location->updated_at? $location->updated_at->format('Y-m-d H:i'):'-' }}</small>
                             </td>
                         </tr>
                     @endforeach

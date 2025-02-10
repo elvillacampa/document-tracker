@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Models\Location;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class DocumentController extends Controller
@@ -34,6 +35,7 @@ class DocumentController extends Controller
                 'file' => 'nullable|file|mimes:pdf',
                 'location' => 'required|string|max:255',
                 'receiver' => 'required|string|max:255',
+                'dispatcher' => 'required|string|max:255',
                 'timestamp' => 'required|date',
             ]);
         
@@ -46,12 +48,15 @@ class DocumentController extends Controller
                 ...$validated,
                 'file_path' => $filePath,
                 'created_by' => auth()->id(),
+                'created_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
                 'updated_by' => auth()->id(),
             ]);
             $location = $document->locations()->create([
                 'location' => $validated['location'],
                 'receiver' => $validated['receiver'],
+                'dispatcher' => $validated['dispatcher'],
                 'timestamp' => $validated['timestamp'],
+                'created_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
@@ -224,6 +229,7 @@ public function update(Request $request, $id)
     $document->update([
         ...$data,
         'updated_by' => auth()->id(),
+        'updated_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
     ]);
     return response()->json(['success' => true, 'document' => $document]);
 }
