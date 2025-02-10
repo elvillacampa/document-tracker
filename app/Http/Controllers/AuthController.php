@@ -6,6 +6,7 @@ use App\Models\User; // Make sure to include the User model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -41,6 +42,9 @@ class AuthController extends Controller
         // Attempt to authenticate the user.
         if (Auth::attempt($credentials)) {
             // Regenerate the session to prevent session fixation.
+            $user->last_login_at = Carbon::now('Asia/Manila')->format('Y-m-d H:i');
+            $user->ip_address = $request->ip();
+            $user->save();
             $request->session()->regenerate();
             return redirect()->intended('/');
         }

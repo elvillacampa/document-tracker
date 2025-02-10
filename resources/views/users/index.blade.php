@@ -31,7 +31,8 @@
                         @endif
                     </td>
                     <td class="user-role">{{ ucfirst($user->role) }}</td>
-                    <td class="user-role">{{ $user->lastSession? $user->lastSession->last_activity->date.'('.$user->lastSession->last_activity->ip_address.')':'-' }}</td>
+                    <td class="user-role">{{ $user->last_login_at?$user->last_login_at:'' }} {{ $user->ip_address?'('.$user->ip_address.')':'' }}</td>
+                    <td>
                     <td>
                         @if(!$user->approved)
                             <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" style="display:inline-block;">
