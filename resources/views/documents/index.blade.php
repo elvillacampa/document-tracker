@@ -47,6 +47,16 @@
         margin-bottom: 5px;
     }
 }
+
+    #mobileMessage {
+      display: none;
+    }
+    /* Display the message for screens with a max width of 767px (adjust as needed) */
+    @media only screen and (max-width: 767px) {
+      #mobileMessage {
+        display: block;
+      }
+    }
 </style>
       @if(Auth::user()->role != 'viewer')
 
@@ -114,30 +124,33 @@
                     @endif
 
     <!-- Filter Input -->
-<div class="row justify-content-end mb-2">
+<div class="row mb-2 justify-content-end" style="text-align: center;">
   
-  <div class="col-auto">
+  <div class="col-md-3 m-1 col-12">
     <input type="text" id="tableFilter" class="form-control" placeholder="Type to filter...">
   </div>
-  <div class="col-auto">
+  <div class="col-md-3 m-1  col-12">
     <div class="input-group">
       <input type="date" id="dateFilter" class="form-control">
-      <button class="btn btn-outline-secondary" type="button" id="clearDateFilter">Clear</button>
+      <button class="btn btn-outline-secondary" type="button" id="clearDateFilter">Clear Date</button>
     </div>
   </div>
-  <div class="col-auto">
+  <div class="col-md-3 m-1  col-12">
     <select id="categoryFilter" class="form-control">
       <option value="">All</option>
       <option value="Incoming">Incoming</option>
       <option value="Outgoing">Outgoing</option>
     </select>
   </div>
-  <div class="col-auto" style="margin-top: -3px;">
+  <div class="col-md-2 m-1 justify-content-end col-12" style="margin-top: -3px;padding-right: 0px;text-align: right;padding-right: 10px;">
     <button id="exportExcel" name="export" class="btn btn-secondary mb-1">Export to Excel</button>
   </div>
 </div>
 
 
+      <div class="row text-center" id="mobileMessage" style="font-size: 12px;color: gray;">
+        <small >Swipe / Scroll Right to View More...</small>
+      </div>
     <div class="table-responsive">
     <table class="table table-bordered" id="dataTable" >
         <thead>

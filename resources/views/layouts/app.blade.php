@@ -24,8 +24,11 @@
 </head>
 <body>
     @include('layouts.partials.navbar')  <!-- You can include your navbar here -->
-    <div class="container-fluid p-5 my-5">
+    <div class="container-fluid p-5">
         <h1 class="text-center">Document Tracker</h1>
+          <div class="row text-center" id="mobileMessage" style="font-size: 12px;color: gray;">
+            <small >Turn device to Landscape Mode for better accessibility.</small>
+          </div>
         @yield('content')
     </div>
 <!-- Bootstrap JS Bundle (includes Popper.js) -->
@@ -33,7 +36,15 @@
     <script src="{{ asset('assets/bootstrap2.bundle.min.js') }}"></script>
 @section('content')
 <style>
-
+    #mobileMessage {
+      display: none;
+    }
+    /* Display the message for screens with a max width of 767px (adjust as needed) */
+    @media only screen and (max-width: 767px) {
+      #mobileMessage {
+        display: block;
+      }
+    }
     button{
         margin: 2px!important;
     }

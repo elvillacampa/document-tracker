@@ -1,6 +1,63 @@
 @extends('layouts.app')
 
 @section('content')
+<style type="text/css">
+
+    #mobileMessage {
+      display: none;
+    }
+    /* Display the message for screens with a max width of 767px (adjust as needed) */
+    @media only screen and (max-width: 767px) {
+      #mobileMessage {
+        display: block;
+      }
+    }
+
+/* Responsive Table */
+.table-responsive {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+
+}
+
+.table-bordered {
+  border-collapse: collapse;
+  border: none;
+}
+.table-bordered th,
+.table-bordered td {
+  border: none;
+  border-bottom: 1px solid black;
+}
+
+#dataTable {
+  width: 100%;
+  max-width: 100%;
+  /* Optionally, you can use table-layout: auto; (or fixed) depending on your design */
+}
+
+    @media (max-width: 400px) {
+      /* Make sure the table container takes full width and scrolls horizontally if needed */
+      .table-responsive {
+        width: 100% !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      }
+      
+      #dataTable {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+        .btn {
+            width: 100%; /* Buttons take full width on mobile */
+            margin-bottom: 5px;
+        }
+</style>
+
 <div class="card p-3">
     <!-- Top Row: All Controls Aligned to the Right -->
     <div class="d-flex justify-content-end align-items-center mb-2">
@@ -56,7 +113,11 @@
         @endphp
 
         @if ($sortedLocations->isNotEmpty())
-            <table class="table table-bordered">
+          <div class="row text-center" id="mobileMessage" style="font-size: 12px;color: gray;">
+            <small >Swipe / Scroll Right to View More...</small>
+          </div>
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable">
                 <colgroup>
                     <col style="width: 2%;">   <!-- # -->
                     <col style="width: 20%;">  <!-- Br/Off/Unit -->
@@ -93,6 +154,8 @@
                     @endforeach
                 </tbody>
             </table>
+
+        </div>
         @else
             <p class="text-center text-muted">No routing history available</p>
         @endif
