@@ -16,7 +16,7 @@ class DocumentController extends Controller
         $documents = Document::with(['locations' => function ($query) {
             $query->orderBy('timestamp', 'asc'); // Sort locations by timestamp (earliest first)
         }])
-        ->orderBy('created_at', 'desc')
+        ->orderBy('date_rcvd_sent', 'desc')
         ->get();
 
         return view('documents.index', compact('documents'));
@@ -24,9 +24,7 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
-
         try{
-            
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'drafter' => 'required|string|max:255',
@@ -38,7 +36,6 @@ class DocumentController extends Controller
                 'dispatcher' => 'required|string|max:255',
                 'timestamp' => 'required|date',
             ]);
-        
             $filePath = null;
 
             if ($request->hasFile('file')) {
@@ -47,6 +44,7 @@ class DocumentController extends Controller
             $document = Document::create([
                 ...$validated,
                 'file_path' => $filePath,
+                'date_rcvd_sent' => $request->date_rcvd_sent?str_replace("T", " ", $request->date_rcvd_sent):'',
                 'created_by' => auth()->id(),
                 'created_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
                 'updated_by' => auth()->id(),
@@ -79,141 +77,6 @@ class DocumentController extends Controller
 
     }
 
-public function uploadChunk(Request $request)
-{
-    // Check if the request contains file chunk data
-    if (!$request->filled('chunkData')) {
-        // No file is being uploaded; validate only the non-file fields
-        $validated = $request->validate([
-            'name'      => 'required|string|max:255',
-            'drafter'   => 'required|string|max:255',
-            'category'  => 'required|string',
-            'purpose'   => 'required|string|max:255',
-            'location'  => 'required|string|max:255',
-            'receiver'  => 'required|string|max:255',
-            'timestamp' => 'required|date',
-        ]);
-
-        // Create the document record with no file (file_path is null)
-        $document = Document::create([
-            'name'       => $validated['name'],
-            'drafter'    => $validated['drafter'],
-            'category'   => $validated['category'],
-            'purpose'    => $validated['purpose'],
-            'file_path'  => null,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
-
-        // Create an associated location record
-        $document->locations()->create([
-            'location'   => $validated['location'],
-            'receiver'   => $validated['receiver'],
-            'timestamp'  => $validated['timestamp'],
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
-
-        return response()->json([
-            'success'  => true,
-            'document' => $document->load('locations')
-        ]);
-    }
-
-    // Otherwise, we assume this is a chunked file upload.
-    $validated = $request->validate([
-        'name'         => 'required|string|max:255',
-        'drafter'      => 'required|string|max:255',
-        'category'     => 'required|string',
-        'purpose'      => 'required|string|max:255',
-        'location'     => 'required|string|max:255',
-        'receiver'     => 'required|string|max:255',
-        'timestamp'    => 'required|date',
-        'fileName'     => 'required|string',
-        'fileType'     => 'required|string',
-        'fileSize'     => 'required|integer',
-        'chunkData'    => 'required|string',
-        'chunkIndex'   => 'required|integer',
-        'totalChunks'  => 'required|integer',
-    ]);
-
-    // Set up a temporary directory for storing chunks
-    $tempDir = storage_path('app/uploads/chunks/');
-    if (!is_dir($tempDir)) {
-        mkdir($tempDir, 0777, true);
-    }
-
-    // Create a unique identifier for this file upload (based on fileName and user ID)
-    $uniqueFileName = preg_replace('/\s+/', '_', $validated['fileName']) . '_' . auth()->id();
-    $chunkIndex = $validated['chunkIndex'];
-    $chunkFilePath = $tempDir . $uniqueFileName . '_' . $chunkIndex . '.part';
-
-    // Remove data URL prefix if present
-    $chunkData = $validated['chunkData'];
-    if (preg_match('/^data:(.*);base64,/', $chunkData, $matches)) {
-        $chunkData = substr($chunkData, strpos($chunkData, ',') + 1);
-    }
-
-    $decodedData = base64_decode($chunkData);
-    if ($decodedData === false) {
-        return response()->json(['success' => false, 'message' => 'Invalid chunk data'], 400);
-    }
-
-    // Save the chunk to a temporary file
-    file_put_contents($chunkFilePath, $decodedData);
-
-    // Check if all chunks have been uploaded by counting part files
-    $totalChunks = $validated['totalChunks'];
-    $chunks = glob($tempDir . $uniqueFileName . '_*.part');
-    if (count($chunks) == $totalChunks) {
-        // All chunks received; reassemble the file
-        // Here, we're assuming the file is a PDF. Adjust the extension as needed.
-        $finalFileName = time() . '_' . preg_replace('/\s+/', '_', $validated['fileName']) . '.pdf';
-        $finalFilePath = storage_path('app/public/documents/') . $finalFileName;
-        $finalFile = fopen($finalFilePath, 'wb');
-
-        // Sort the chunk files in natural order by chunk index
-        natsort($chunks);
-        foreach ($chunks as $chunk) {
-            fwrite($finalFile, file_get_contents($chunk));
-        }
-        fclose($finalFile);
-
-        // Clean up temporary chunk files
-        foreach ($chunks as $chunk) {
-            unlink($chunk);
-        }
-        $filePath = 'documents/' . $finalFileName;
-    } else {
-        // Not all chunks have been uploaded yet; return success for this chunk upload
-        return response()->json(['success' => true, 'chunk_uploaded' => true]);
-    }
-
-    // Create the document record with the assembled file path
-    $document = Document::create([
-        'name'       => $validated['name'],
-        'drafter'    => $validated['drafter'],
-        'category'   => $validated['category'],
-        'purpose'    => $validated['purpose'],
-        'file_path'  => $filePath,
-        'created_by' => auth()->id(),
-        'updated_by' => auth()->id(),
-    ]);
-
-    // Create an associated location record
-    $document->locations()->create([
-        'location'   => $validated['location'],
-        'receiver'   => $validated['receiver'],
-        'timestamp'  => $validated['timestamp'],
-        'created_by' => auth()->id(),
-        'updated_by' => auth()->id(),
-    ]);
-
-    return response()->json([
-        'success'  => true,
-        'document' => $document->load('locations')
-    ]);
-}
 
 public function update(Request $request, $id)
 {
@@ -223,11 +86,11 @@ public function update(Request $request, $id)
         'drafter'  => 'required|string',
         'purpose'  => 'required|string',
     ]);
-
     $document = Document::findOrFail($id);
-    $document->update($data);
+    // $document->update($data);
     $document->update([
         ...$data,
+        'date_rcvd_sent' => $request->date_rcvd_sent?str_replace("T", " ", $request->date_rcvd_sent):'',
         'updated_by' => auth()->id(),
         'updated_at' => Carbon::now('Asia/Manila')->format('Y-m-d H:i'),
     ]);
@@ -309,5 +172,145 @@ public function downloadFile($id)
 
         return redirect()->back()->with('success', 'Document file updated successfully!');
     }
+
+
+// public function uploadChunk(Request $request)
+// {
+//     // Check if the request contains file chunk data
+//     if (!$request->filled('chunkData')) {
+//         // No file is being uploaded; validate only the non-file fields
+//         $validated = $request->validate([
+//             'name'      => 'required|string|max:255',
+//             'drafter'   => 'required|string|max:255',
+//             'category'  => 'required|string',
+//             'purpose'   => 'required|string|max:255',
+//             'location'  => 'required|string|max:255',
+//             'receiver'  => 'required|string|max:255',
+//             'timestamp' => 'required|date',
+//             'date_rcvd_sent' => 'required|string',
+
+//         ]);
+
+//         // Create the document record with no file (file_path is null)
+//         $document = Document::create([
+//             'name'       => $validated['name'],
+//             'drafter'    => $validated['drafter'],
+//             'category'   => $validated['category'],
+//             'purpose'    => $validated['purpose'],
+//             'purpose'    => $validated['purpose'],
+//             'file_path'  => null,
+//             'created_by' => auth()->id(),
+//             'updated_by' => auth()->id(),
+//         ]);
+
+//         // Create an associated location record
+//         $document->locations()->create([
+//             'location'   => $validated['location'],
+//             'receiver'   => $validated['receiver'],
+//             'timestamp'  => $validated['timestamp'],
+//             'created_by' => auth()->id(),
+//             'updated_by' => auth()->id(),
+//         ]);
+
+//         return response()->json([
+//             'success'  => true,
+//             'document' => $document->load('locations')
+//         ]);
+//     }
+
+//     // Otherwise, we assume this is a chunked file upload.
+//     $validated = $request->validate([
+//         'name'         => 'required|string|max:255',
+//         'drafter'      => 'required|string|max:255',
+//         'category'     => 'required|string',
+//         'purpose'      => 'required|string|max:255',
+//         'location'     => 'required|string|max:255',
+//         'receiver'     => 'required|string|max:255',
+//         'timestamp'    => 'required|date',
+//         'fileName'     => 'required|string',
+//         'fileType'     => 'required|string',
+//         'fileSize'     => 'required|integer',
+//         'chunkData'    => 'required|string',
+//         'chunkIndex'   => 'required|integer',
+//         'totalChunks'  => 'required|integer',
+//     ]);
+
+//     // Set up a temporary directory for storing chunks
+//     $tempDir = storage_path('app/uploads/chunks/');
+//     if (!is_dir($tempDir)) {
+//         mkdir($tempDir, 0777, true);
+//     }
+
+//     // Create a unique identifier for this file upload (based on fileName and user ID)
+//     $uniqueFileName = preg_replace('/\s+/', '_', $validated['fileName']) . '_' . auth()->id();
+//     $chunkIndex = $validated['chunkIndex'];
+//     $chunkFilePath = $tempDir . $uniqueFileName . '_' . $chunkIndex . '.part';
+
+//     // Remove data URL prefix if present
+//     $chunkData = $validated['chunkData'];
+//     if (preg_match('/^data:(.*);base64,/', $chunkData, $matches)) {
+//         $chunkData = substr($chunkData, strpos($chunkData, ',') + 1);
+//     }
+
+//     $decodedData = base64_decode($chunkData);
+//     if ($decodedData === false) {
+//         return response()->json(['success' => false, 'message' => 'Invalid chunk data'], 400);
+//     }
+
+//     // Save the chunk to a temporary file
+//     file_put_contents($chunkFilePath, $decodedData);
+
+//     // Check if all chunks have been uploaded by counting part files
+//     $totalChunks = $validated['totalChunks'];
+//     $chunks = glob($tempDir . $uniqueFileName . '_*.part');
+//     if (count($chunks) == $totalChunks) {
+//         // All chunks received; reassemble the file
+//         // Here, we're assuming the file is a PDF. Adjust the extension as needed.
+//         $finalFileName = time() . '_' . preg_replace('/\s+/', '_', $validated['fileName']) . '.pdf';
+//         $finalFilePath = storage_path('app/public/documents/') . $finalFileName;
+//         $finalFile = fopen($finalFilePath, 'wb');
+
+//         // Sort the chunk files in natural order by chunk index
+//         natsort($chunks);
+//         foreach ($chunks as $chunk) {
+//             fwrite($finalFile, file_get_contents($chunk));
+//         }
+//         fclose($finalFile);
+
+//         // Clean up temporary chunk files
+//         foreach ($chunks as $chunk) {
+//             unlink($chunk);
+//         }
+//         $filePath = 'documents/' . $finalFileName;
+//     } else {
+//         // Not all chunks have been uploaded yet; return success for this chunk upload
+//         return response()->json(['success' => true, 'chunk_uploaded' => true]);
+//     }
+
+//     // Create the document record with the assembled file path
+//     $document = Document::create([
+//         'name'       => $validated['name'],
+//         'drafter'    => $validated['drafter'],
+//         'category'   => $validated['category'],
+//         'purpose'    => $validated['purpose'],
+//         'file_path'  => $filePath,
+//         'created_by' => auth()->id(),
+//         'updated_by' => auth()->id(),
+//     ]);
+
+//     // Create an associated location record
+//     $document->locations()->create([
+//         'location'   => $validated['location'],
+//         'receiver'   => $validated['receiver'],
+//         'timestamp'  => $validated['timestamp'],
+//         'created_by' => auth()->id(),
+//         'updated_by' => auth()->id(),
+//     ]);
+
+//     return response()->json([
+//         'success'  => true,
+//         'document' => $document->load('locations')
+//     ]);
+// }
 
 }

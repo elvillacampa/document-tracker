@@ -62,27 +62,21 @@
                 <label for="drafter" class="form-label text-primary">Originator</label>
                 <input type="text" name="drafter" class="form-control" placeholder="From/Origin" required>
             </div>
-            <div class="col-md-2 col-12 mb-3">
+            <div class="col-md-1 col-12 mb-3">
                 <label for="category" class="form-label text-primary">Category</label>
                 <select name="category" class="form-control">
                     <option value="Incoming">Incoming</option>
                     <option value="Outgoing">Outgoing</option>
                 </select>
             </div>
-            <div class="col-md-2 col-12 mb-3">
+            <div class="col-md-1 col-12 mb-3">
                 <label for="purpose" class="form-label text-primary">Purpose</label>
-                <select name="purpose" class="form-control">
-                      <option value="For Concurrence">For Approval</option>
-                      <option value="For Signature">For Signature</option>
-                      <option value="For Concurrence">For Concurrence</option>
-                      <option value="For Appropriate Action">For Appropriate Action</option>
-                      <option value="For Concurrence">For Attendance</option>
-                      <option value="For Route">For Route</option>
-                      <option value="For Reference">For Reference</option>
-                      <option value="For Info">For Info</option>
-                      <option value="RWC">RWC</option>
-                      <option value="Others">Others</option>
+                <select name="purpose" class="form-control" id="purposeSelect">
                 </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="timestamp" class="form-label text-primary">Date Received / Sent</label>
+                <input label="Date Received"type="datetime-local" name="date_rcvd_sent" class="form-control" required>
             </div>
             <div class="col-md-2 col-12 mb-3">
                 <label for="category" class="form-label text-primary">File (Scanned PDF)</label>
@@ -117,6 +111,8 @@
 
     </form>
 </div>
+                    @endif
+
     <!-- Filter Input -->
 <div class="row justify-content-end mb-2">
   
@@ -141,12 +137,12 @@
   </div>
 </div>
 
-                    @endif
 
     <div class="table-responsive">
     <table class="table table-bordered" id="dataTable" >
         <thead>
             <tr>
+                <th style="width: 7%;" rowspan="2">Date</th>
                 <th style="width: 5%;" rowspan="2">Category</th>
                 <th style="width: 20%;"rowspan="2">Document Name</th>
                 <th style="width: 10%;" rowspan="2">Originator</th>
@@ -173,6 +169,7 @@
 
 @if ($document->locations->isEmpty())
     <tr data-document-id="{{ $document->id }}">
+        <td rowspan="{{ $rowspan }}" class="document-detail" data-field="date_rcvd_sent">{{ $document->date_rcvd_sent?$document->date_rcvd_sent:' - ' }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="category">{{ $document->category }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="name">{{ $document->name }}</td>
         <td rowspan="{{ $rowspan }}" class="document-detail" data-field="drafter">{{ $document->drafter }}</td>
@@ -200,6 +197,7 @@
     @foreach ($document->locations as $index => $location)
         <tr data-document-id="{{ $document->id }}" data-id="{{ $location->id }}">
             @if ($index === 0)
+                <td rowspan="{{ $rowspan }}" class="document-detail" data-field="date_rcvd_sent">{{ $document->date_rcvd_sent?$document->date_rcvd_sent:' - ' }}</td>
                 <td rowspan="{{ $rowspan }}" class="document-detail" data-field="category">{{ $document->category }}</td>
                 <td rowspan="{{ $rowspan }}" class="document-detail" data-field="name">{{ $document->name }}</td>
                 <td rowspan="{{ $rowspan }}" class="document-detail" data-field="drafter">{{ $document->drafter }}</td>
@@ -342,7 +340,21 @@
 
 var current_modal = '';
 var current_document = '';
-
+var userRole = @json(Auth::user()->role);
+console.log(userRole)
+    const purposes = [
+      { value: "For Out", text: "For Out" },
+      { value: "For Concurrence", text: "For Concurrence" },
+      { value: "For Signature", text: "For Signature" },
+      { value: "For Compliance", text: "For Compliance" },
+      { value: "For Appropriate Action", text: "For Appropriate Action" },
+      { value: "For Attendance", text: "For Attendance" },
+      { value: "For Reference", text: "For Reference" },
+      { value: "For Info", text: "For Info" },
+      { value: "RWC", text: "RWC" },
+      { value: "Others", text: "Others" }
+    ];
+    
     function openModal(modalname, id){
             current_modal = modalname+id;
             current_document = id;
@@ -373,6 +385,22 @@ document.addEventListener("DOMContentLoaded", function() {
             input.value = formattedDate;
         }
     });
+
+    if(userRole!='viewer'){
+        // Get the select element by its ID.
+        const select = document.getElementById("purposeSelect");
+        
+        // Optionally clear out any existing content.
+        select.innerHTML = "";
+        
+        // Loop over the purposes array and create an <option> element for each.
+        purposes.forEach(item => {
+          const option = document.createElement("option");
+          option.value = item.value;
+          option.textContent = item.text;
+          select.appendChild(option);
+        });
+    }
 });
 </script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -424,7 +452,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                     if ( row.is(documentRow) ) {
                         let newDocRow = docRows.eq(1);
                         // Copy the document cells (the first 4 cells) from the old document row.
-                        let docInfoCells = documentRow.children('td').slice(0, 4).clone();
+                        let docInfoCells = documentRow.children('td').slice(0, 5).clone();
                         newDocRow.prepend(docInfoCells);
                         // Remove the old document row.
                         documentRow.remove();
@@ -494,6 +522,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             ("0" + datee.getHours()).slice(-2) + ":" +
             ("0" + datee.getMinutes()).slice(-2);
         let newRow = $("<tr>").html(`
+            <td rowspan="${rowspan}" class="document-detail" data-field="date_rcvd_sent">${doc.date_rcvd_sent}</td>
             <td rowspan="${rowspan}" class="document-detail" data-field="category">${doc.category}</td>
             <td rowspan="${rowspan}" class="document-detail" data-field="name">${doc.name}</td>
             <td rowspan="${rowspan}" class="document-detail" data-field="drafter">${doc.drafter}</td>
@@ -551,6 +580,49 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
             tableBody.append(historyRow);
         });
     }
+    function sortDocumentsTable() {
+        // Create an object to hold groups of rows keyed by document ID.
+        let groups = {};
+
+        // Loop through each row that has a data-document-id.
+        $("#dataTable tbody tr[data-document-id]").each(function () {
+            let docId = $(this).attr("data-document-id");
+            if (!groups[docId]) {
+                groups[docId] = [];
+            }
+            groups[docId].push(this);
+        });
+
+        // Convert the groups object into an array so we can sort it.
+        let groupsArray = [];
+        for (let docId in groups) {
+            // Assume that the first row in each group is the document row.
+            let groupRows = groups[docId];
+
+            // Get the date text from the cell with data-field="date_rcvd_sent".
+            let dateText = $(groupRows[0]).find('td[data-field="date_rcvd_sent"]').text().trim();
+            
+            // Create a Date object.
+            let dateValue = new Date(dateText);
+            groupsArray.push({ docId: docId, date: dateValue, rows: groupRows });
+        }
+
+        // Sort the groups by date.
+        // (For ascending order—earliest dates first. Use b.date - a.date for descending order.)
+        groupsArray.sort(function (a, b) {
+            return b.date - a.date;
+        });
+
+        // Reattach the rows in sorted order.
+        let tbody = $("#dataTable tbody");
+        tbody.empty(); // Remove all existing rows.
+        groupsArray.forEach(function (group) {
+            group.rows.forEach(function (row) {
+                tbody.append(row);
+            });
+        });
+    }
+
 
     $('#addDocumentForm').submit(function (e) {
         e.preventDefault();
@@ -565,6 +637,7 @@ $(document).on('click', '.deleteRoutingBtn', function (e) {
                 if (response.success) {
                     alert("Document added successfully!");
                     updateTable(response.document);
+                    sortDocumentsTable();
                     $('#addDocumentForm')[0].reset();
                     let dateInputs = document.querySelectorAll('input[type="datetime-local"]');
                     let now = new Date();
@@ -923,7 +996,7 @@ $("[id^='addRoutingModal-'] form").submit(function(e) {
       let dateMatch = true;
       if (dateValue) {
         // Look for a cell with data-field="timestamp" in the document row.
-        let dateCell = docRow.find('[data-field="timestamp"]');
+        let dateCell = docRow.find('[data-field="date_rcvd_sent"]');
         if (dateCell.length > 0) {
           let cellText = dateCell.text().trim();
           // Assume the date is in the first 10 characters (YYYY-MM-DD).
@@ -939,7 +1012,7 @@ $("[id^='addRoutingModal-'] form").submit(function(e) {
       let categoryMatch = true;
       if (categoryValue) {
         // Assume the category is in the first cell of the document row.
-        let category = docRow.find('td:first').text().trim().toLowerCase();
+        let category = docRow.find('td:eq(1)').text().trim().toLowerCase();
         categoryMatch = (category.indexOf(categoryValue) > -1);
       }
 
@@ -971,10 +1044,13 @@ $("[id^='addRoutingModal-'] form").submit(function(e) {
       // For the first header row, remove the last cell (global Actions)
       if (index === 0) {
         $(this).find('th:last').remove();
+        $(this).find('th:last').attr('colspan', 4);
       }
       // For the second header row, remove the last cell (Routing History Actions)
       else if (index === 1) {
-        $(this).find('th:last').remove();
+            if(userRole!='viewer') {
+                $(this).find('th:last').remove();
+            }
       }
     });
 
@@ -982,14 +1058,19 @@ $("[id^='addRoutingModal-'] form").submit(function(e) {
     tableClone.find('tbody tr').each(function(){
       let $cells = $(this).children();
       // For rows with 9 cells (document rows)
-      if ($cells.length >= 9) {
-        $cells.eq(8).remove(); // Remove global actions
-        $cells.eq(7).remove(); // Remove routing history actions (after removal, indexes shift)
+      if ($cells.length >=9) {
+        $cells.eq(10).remove(); // Remove global actions
+        $cells.eq(9).remove(); // Remove routing history actions (after removal, indexes shift)
       }
       // For subsequent routing rows that have 4 cells:
-      else if ($cells.length === 4) {
-        $cells.eq(3).remove(); // Remove routing actions cell
+      else if ($cells.length === 5) {
+        $cells.eq(4).remove(); // Remove routing actions cell
       }
+      else if ($cells.length === 7) {
+        $cells.eq(5).attr('colspan',4); // Remove routing actions cell
+        $cells.eq(6).remove(); // Remove routing actions cell
+      }
+
     });
 
     // Convert the modified table to a workbook.
@@ -1023,12 +1104,15 @@ $("[id^='addRoutingModal-'] form").submit(function(e) {
 // Inline editing for document details with dropdowns for Category and Purpose
 $("tbody").on("click", ".editDocumentBtn", function () {
     let docRow = $(this).closest("tr");
-    
-    // Iterate over each document detail cell
+
+    // Iterate over each document detail cell and store the original content.
     docRow.find(".document-detail").each(function () {
+        // Save the original text so that we can restore it later
         let currentText = $(this).text().trim();
+        $(this).data("originalText", currentText);
+
         let field = $(this).data("field");
-        
+
         if (field === "category") {
             // Define dropdown options for Category
             let options = `
@@ -1036,44 +1120,48 @@ $("tbody").on("click", ".editDocumentBtn", function () {
                 <option value="Outgoing" ${currentText === "Outgoing" ? "selected" : ""}>Outgoing</option>
             `;
             $(this).html(`<select class="form-control" name="${field}">${options}</select>`);
+        } else if (field === 'date_rcvd_sent') {
+            // Convert the current text into the proper datetime-local format
+            let datetimeLocalValue = currentText.replace(" ", "T");
+            $(this).html(`<input type="datetime-local" class="form-control" name="${field}" value="${datetimeLocalValue}">`);
         } else if (field === "purpose") {
             // Define dropdown options for Purpose
-            let options = `
-                <option value="For Signature" ${currentText === "For Signature" ? "selected" : ""}>For Signature</option>
-                <option value="For Route" ${currentText === "For Route" ? "selected" : ""}>For Route</option>
-                <option value="RWC" ${currentText === "RWC" ? "selected" : ""}>RWC</option>
-                <option value="For Appropriate Action" ${currentText === "For Appropriate Action" ? "selected" : ""}>For Appropriate Action</option>
-                <option value="For Info" ${currentText === "For Info" ? "selected" : ""}>For Info</option>
-                <option value="For Reference" ${currentText === "For Reference" ? "selected" : ""}>For Reference</option>
-                <option value="For Concurrence" ${currentText === "For Concurrence" ? "selected" : ""}>For Concurrence</option>
-                <option value="Others" ${currentText === "Others" ? "selected" : ""}>Others</option>
-            `;
+            // Generate the option HTML using the array and currentText for selection.
+            let options = purposes.map(function(item) {
+              // If currentText exactly equals the option value, add "selected" attribute.
+              console.log(item);
+              console.log(currentText);
+              return `<option value="${item.value}" ${currentText === item.value ? "selected" : ""}>${item.text}</option>`;
+            }).join("");
+
+            // Replace the current element's HTML with the generated select element.
             $(this).html(`<select class="form-control" name="${field}">${options}</select>`);
         } else {
-            // For other fields (e.g., name, drafter), use a text input.
+            // For other fields, use a text input.
             $(this).html(`<input type="text" class="form-control" name="${field}" value="${currentText}">`);
         }
     });
-    
+
     // Toggle buttons: hide Edit, show Save/Cancel
     docRow.find(".editDocumentBtn").addClass("d-none");
     docRow.find(".saveDocumentBtn, .cancelDocumentBtn").removeClass("d-none");
 });
 
+
 $("tbody").on("click", ".cancelDocumentBtn", function () {
     let docRow = $(this).closest("tr");
-    // For each document detail cell, revert the input/select field back to its original text.
+
+    // Revert each cell to its original content.
     docRow.find(".document-detail").each(function () {
-        // Retrieve the original value from the input's or select's "value" attribute or selected option.
-        let originalValue = $(this).find("input, select").is("select")
-            ? $(this).find("select option:selected").text()
-            : $(this).find("input").attr("value");
+        let originalValue = $(this).data("originalText");
         $(this).html(originalValue);
     });
+
     // Toggle buttons: hide Save/Cancel, show Edit
     docRow.find(".saveDocumentBtn, .cancelDocumentBtn").addClass("d-none");
     docRow.find(".editDocumentBtn").removeClass("d-none");
 });
+
 
 $("tbody").on("click", ".saveDocumentBtn", function () {
     let docRow = $(this).closest("tr");
@@ -1085,6 +1173,7 @@ $("tbody").on("click", ".saveDocumentBtn", function () {
         category: docRow.find("select[name='category']").val() || docRow.find("input[name='category']").val(),
         name: docRow.find("input[name='name']").val(),
         drafter: docRow.find("input[name='drafter']").val(),
+        date_rcvd_sent: docRow.find("input[name='date_rcvd_sent']").val(),
         purpose: docRow.find("select[name='purpose']").val() || docRow.find("input[name='purpose']").val(),
     };
 
@@ -1098,10 +1187,15 @@ $("tbody").on("click", ".saveDocumentBtn", function () {
                 // Update each document detail cell with the new value.
                 docRow.find(".document-detail").each(function () {
                     let field = $(this).data("field");
+                    let newValue = '';
                     // For dropdowns, get the selected text.
-                    let newValue = (field === "category" || field === "purpose")
-                        ? $(this).find("select option:selected").text()
-                        : updatedData[field];
+                    if(field==='date_rcvd_sent'){
+                        newValue = updatedData[field].replace("T", " ")
+                    }else{
+                        newValue = (field === "category" || field === "purpose")
+                            ? $(this).find("select option:selected").text()
+                            : updatedData[field];
+                    }
                     $(this).html(newValue);
                 });
                 // Toggle buttons: hide Save/Cancel, show Edit.

@@ -43,10 +43,10 @@
         <h3>{{ $document->name }}</h3>
         <p><strong>Category:</strong> {{ $document->category }}</p>
         <p><strong>Originator:</strong> {{ $document->drafter }}</p>
-
+        <p><strong>Date Received/Sent:</strong> {{ $document->date_rcvd_sent }}</p>
         <!-- Added Creator and Last Updated By -->
-        <p><strong>Recorded By:</strong> {{ $document->creator->name ?? 'Unknown' }} on {{ $document->created_at->format('Y-m-d H:i') }}</p>
-        <p><strong>Last Updated By:</strong> {{ $document->updater->name ?? 'Unknown' }} on {{ $document->updated_at? $document->updated_at->format('Y-m-d H:i'):'-' }}</p>
+        <p><strong>Recorded By:</strong> {{ $document->creator->name ?? 'Unknown' }} on {{ $document->created_at?\Carbon\Carbon::parse($document->created_at)->format('Y-m-d H:i'):'-' }}</p>
+        <p><strong>Last Updated By:</strong> {{ $document->updater->name ?? 'Unknown' }} on {{ $document->updated_at? \Carbon\Carbon::parse($document->updated_at)->format('Y-m-d H:i'):'-' }}</p>
 
         <h4>Routing History:</h4>
 
@@ -79,12 +79,12 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $location->location }}</td>
                             <td>{{ $location->receiver }}</td>
-                            <td>{{ \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') }}</td>
+                            <td>{{ $location->timestamp? \Carbon\Carbon::parse($location->timestamp)->format('Y-m-d H:i') :'-' }}</td>
                             <td>
                                 <strong>Recorded By: </strong> {{ $location->creator->name ?? 'Unknown' }}<br>
-                                <small>on {{ $location->created_at->format('Y-m-d H:i') }}</small><br>
+                                <small>on {{ $location->created_at? \Carbon\Carbon::parse($location->created_at)->format('Y-m-d H:i') :'-' }}</small><br>
                                 <strong>Last Updated By: </strong> {{ $location->updater->name ?? 'Unknown' }}<br>
-                                <small>on  {{ $location->updated_at? $location->updated_at->format('Y-m-d H:i'):'-' }}</small>
+                                <small>on  {{ $location->updated_at? \Carbon\Carbon::parse($location->updated_at)->format('Y-m-d H:i') :'-' }}</small>
                             </td>
                         </tr>
                     @endforeach

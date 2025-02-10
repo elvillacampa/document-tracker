@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
+    public $timestamps = false;
     use HasFactory;
 
     protected $fillable = ['document_id', 'location', 'receiver', 'timestamp', 'created_by', 'updated_by','dispatcher','created_at','updated_at'];
